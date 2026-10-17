@@ -307,6 +307,15 @@ def audit(data: dict, expect_min: float | None) -> Audit:
               "webhook_url, an extraction task, or call_summary_enabled",
               "Nothing records what happened on each call. Confirmations, cancellations and callback promises "
               "only exist in transcripts.")
+    hook = find_key(data, ("webhook_url",))
+    if isinstance(hook, str) and re.search(r"your[-_]?domain|example\.(?:com|org)|localhost|127\.0\.0\.1|placeholder|<", hook, re.I):
+        a.add("webhook-placeholder", "medium", "agent_config.webhook_url", hook, "your live endpoint",
+              "The webhook still points at a template or local address, so call outcomes never reach your system.")
+    if re.search(r"transfer|connect (?:you|aapko)|connect kar|human agent|customer care agent se|representative", low_prompt) \
+            and "transfer" not in json.dumps(tools).lower():
+        a.add("transfer-promise", "medium", "tools_config.api_tools", None, "a transfer tool, or promise a callback instead",
+              "The prompt promises to connect the caller to a person, but no call transfer is configured, so they wait "
+              "on a silent line. Ignore this if transfer is set up outside this agent.")
     guard = find_key(data, ("calling_guardrails",))
     if outbound and not guard:
         a.add("no-calling-hours", "medium", "agent_config.calling_guardrails", None, "e.g. 9 to 20",

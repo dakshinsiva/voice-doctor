@@ -60,6 +60,13 @@ class LintTests(unittest.TestCase):
         hi = "धन्यवाद, आपका दिन शुभ हो!"
         self.assertIn("stiff-hindi", rules(lint("x", hi, None, "sarvam-v4").findings))
 
+    def test_template_leftovers(self):
+        prompt = "You are Priya, a ***REMOVED*** calling from Acme Store.\nGreeting: Namaste {customer_name} ji, main Priya bol rahi hoon."
+        welcome = "Namaste {customer_name} ji, main Priya bol rahi hoon Acme Store se."
+        found = rules(lint(prompt, welcome, None, "sarvam-v3").findings)
+        self.assertIn("placeholder-text", found)
+        self.assertIn("greeting-repeated", found)
+
     def test_clean_prompt_scores_high(self):
         prompt = ("# How you speak\nYou are on a phone call; everything you write is spoken aloud. Plain spoken sentences "
                   "only, no lists or markdown. Keep each reply to one or two short sentences. Ask one question at a time. "
@@ -97,6 +104,14 @@ class AuditTests(unittest.TestCase):
         self.assertIn("call-cut-off", found)
         self.assertIn("online-check-language", found)
         self.assertNotIn("silence-hangup-before-check", found)  # Bolna's own defaults: 10 and 10
+
+    def test_placeholder_webhook_and_transfer_promise(self):
+        agent = load("cod-confirmation", "agent.json")
+        agent["agent_config"]["webhook_url"] = "https://your-domain.com/api/bolna/webhook"
+        agent["agent_prompts"]["task_1"]["system_prompt"] += "\nIf they ask for a human, transfer them to customer care."
+        found = rules(audit(agent, None).findings)
+        self.assertIn("webhook-placeholder", found)
+        self.assertIn("transfer-promise", found)
 
     def test_expected_minutes_ignores_unrelated_durations(self):
         self.assertIsNone(expected_minutes("Ask them to arrive 10 minutes early."))

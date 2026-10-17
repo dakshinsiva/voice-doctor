@@ -98,6 +98,8 @@ SPEAKER_LINE = re.compile(
 )
 QUOTED = re.compile(r"\"([^\"\n]{12,})\"|“([^”\n]{12,})”")
 SENTENCE_SPLIT = re.compile(r"(?<=[.!?।])\s+")
+PLACEHOLDER = re.compile(r"\*{3}[A-Z_ ]+\*{3}|\[(?:TODO|TBD|INSERT|YOUR|PLACEHOLDER)[^\]]*\]|<(?:your|insert|company|brand)[^>]*>|"
+                         r"\bX{3,}\b|lorem ipsum|your[-_ ]?(?:company|brand|store)[-_ ]?name", re.I)
 FORMATTED_VAR_HINT = re.compile(
     r"date|time|day|amount|price|fee|cost|total|phone|mobile|number|dob|due|slot|appointment|emi|balance", re.I)
 # Common Hindi words written in Latin script: a sign the model or author is using romanised Hindi.
@@ -312,6 +314,12 @@ def lint(prompt: str, welcome: str | None, known_vars: set[str] | None, tts: str
                    "Replace with: answer in a sentence or two, then ask if they want more.",
                    line_of(prompt, verbose.start()), short(prompt[verbose.start():verbose.start() + 60]))
 
+    ph = PLACEHOLDER.search(prompt + "\n" + (welcome or ""))
+    if ph:
+        report.add("placeholder-text", "high", f"Template leftover '{short(ph.group(0), 40)}'. The model reads it as part of its "
+                   "instructions and may say it aloud.", "Replace it with the real text, or delete it, before launch.",
+                   line_of(prompt, ph.start()) if ph.start() < len(prompt) else None, short(ph.group(0), 60))
+
     # 2. Languages and script.
     langs = [l for l in INDIAN_LANGUAGES if re.search(rf"\b{l}\b", low)]
     report.stats["indian_languages_mentioned"] = langs
@@ -366,6 +374,11 @@ def lint(prompt: str, welcome: str | None, known_vars: set[str] | None, tts: str
                        f"Welcome is {n} words, about {secs:.0f} seconds before the caller can speak.",
                        "Aim for under 25 words: who you are, why you're calling, one yes/no question.",
                        None, short(welcome), "welcome")
+        opening = " ".join(words(SENTENCE_SPLIT.split(welcome.strip())[0])[:6]).lower()
+        if len(opening.split()) >= 4 and opening in " ".join(prompt.lower().split()):
+            report.add("greeting-repeated", "low", "The prompt scripts the same greeting as the welcome message, so the agent "
+                       "may introduce itself twice.", "Tell the model the welcome has already been spoken and start the flow "
+                       "at the next step.", None, short(opening), "welcome")
         if not re.search(r"\b(?:ai|a\.i\.|assistant|virtual|automated|bot)\b|सहायक|असिस्टेंट", welcome.lower()):
             report.add("no-ai-disclosure", "low",
                        "Welcome doesn't say it's an AI assistant. Callers who find out later trust it less.",
