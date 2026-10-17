@@ -336,8 +336,8 @@ def main() -> int:
     with open(args.executions_json, encoding="utf-8") as fh:
         execs = load_executions(json.load(fh))
     if not execs:
-        print("No executions found in the file.", file=sys.stderr)
-        return 2
+        print("No calls in this file yet. Make a few test calls (or widen --days when fetching), then run this again.")
+        return 0
     agent = None
     if args.agent_json:
         with open(args.agent_json, encoding="utf-8") as fh:

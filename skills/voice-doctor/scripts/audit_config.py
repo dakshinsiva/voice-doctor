@@ -285,9 +285,16 @@ def audit(data: dict, expect_min: float | None) -> Audit:
         a.add("voicemail-off", "medium", "task_config.voicemail", tc.get("voicemail", False), "true",
               "Outbound calls that hit voicemail get the whole script, and you pay for it.")
     trig = num(tc.get("trigger_user_online_message_after"))
-    if tc.get("check_if_user_online") is not False and hs is not None and trig is not None and hs <= trig:
-        a.add("silence-hangup-before-check", "high", "task_config.hangup_after_silence", int(hs), f"more than {int(trig)}",
-              f"The call hangs up after {int(hs)} s of silence, before the 'are you there?' check at {int(trig)} s can ever play.")
+    if tc.get("check_if_user_online") is not False and hs is not None and trig is not None and hs < trig:
+        a.add("silence-hangup-before-check", "medium", "task_config.hangup_after_silence", int(hs), f"at least {int(trig)}",
+              f"The call may hang up after {int(hs)} s of silence, before the 'are you there?' check at {int(trig)} s plays. "
+              "Bolna doesn't document whether the timers overlap; confirm on a silent test call.")
+    msg = tc.get("check_user_online_message")
+    texts = list(msg.values()) if isinstance(msg, dict) else [msg] if isinstance(msg, str) else []
+    if tr_lang in INDIC and texts and not any(re.search(r"[\u0900-\u0DFF]", t or "") for t in texts):
+        a.add("online-check-language", "medium", "task_config.check_user_online_message", texts[0],
+              f"the same line in the caller's language ({tr_lang})",
+              "The 'are you still there?' line is in English on an Indian-language call; the caller hears a sudden switch.")
     if tc.get("check_if_user_online") is False:
         a.add("online-check-off", "low", "task_config.check_if_user_online", False, "true, after 8–15 s",
               "No 'are you there?' after silence; the call just goes quiet.")

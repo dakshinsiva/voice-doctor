@@ -86,6 +86,18 @@ class AuditTests(unittest.TestCase):
         self.assertNotIn("no-calling-hours", found)
         self.assertEqual(a.summary["expected_minutes"], 3)
 
+    def test_flat_live_shape_and_defaults(self):
+        # Bolna's GET /v2/agent returns the agent flat (no agent_config wrapper).
+        agent = load("cod-confirmation", "agent.json")
+        flat = {**agent["agent_config"], "agent_prompts": agent["agent_prompts"]}
+        flat["tasks"][0]["task_config"].update(hangup_after_silence=10, check_if_user_online=True,
+                                               trigger_user_online_message_after=10,
+                                               check_user_online_message="Hey, are you still there")
+        found = rules(audit(flat, None).findings)
+        self.assertIn("call-cut-off", found)
+        self.assertIn("online-check-language", found)
+        self.assertNotIn("silence-hangup-before-check", found)  # Bolna's own defaults: 10 and 10
+
     def test_expected_minutes_ignores_unrelated_durations(self):
         self.assertIsNone(expected_minutes("Ask them to arrive 10 minutes early."))
         self.assertEqual(expected_minutes("This call should take 2-3 minutes."), 3)
