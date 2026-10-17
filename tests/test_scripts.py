@@ -113,6 +113,14 @@ class AuditTests(unittest.TestCase):
         self.assertIn("webhook-placeholder", found)
         self.assertIn("transfer-promise", found)
 
+    def test_default_hangup_check(self):
+        agent = load("cod-confirmation", "agent.json")
+        tc = agent["agent_config"]["tasks"][0]["task_config"]
+        tc["hangup_after_LLMCall"] = True
+        self.assertIn("default-hangup-check", rules(audit(agent, None).findings))
+        tc["call_cancellation_prompt"] = "End the call only after the closing line."
+        self.assertNotIn("default-hangup-check", rules(audit(agent, None).findings))
+
     def test_expected_minutes_ignores_unrelated_durations(self):
         self.assertIsNone(expected_minutes("Ask them to arrive 10 minutes early."))
         self.assertEqual(expected_minutes("This call should take 2-3 minutes."), 3)

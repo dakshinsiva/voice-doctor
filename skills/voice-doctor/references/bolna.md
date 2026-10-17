@@ -71,6 +71,7 @@ API defaults first; the self-hosted engine has different defaults (see the end o
 | `reasoning_effort` | llm_config | – | Reasoning before answering | `none` or `low` for live calls (Bolna OpenAI page). |
 | `temperature` | llm_config | 0.1 | | GPT-5 family models on Bolna require exactly 1, otherwise the API returns 400. |
 | `keywords` | transcriber | – | STT keyword biasing | 10–20 terms you've actually seen misheard (brand names, products, place names). `context` describes the call; it isn't instructions. |
+| `hangup_after_LLMCall` / `call_cancellation_prompt` | task_config | false / – | After each reply, an LLM check decides whether the call is over | With no `call_cancellation_prompt`, Bolna's default (`CHECK_FOR_COMPLETION_PROMPT` in `bolna/prompts.py`, @4d6accb) counts "thank you", a caller who "seems satisfied", or a goal that "appears achieved even without explicit confirmation" as complete. Indian callers say "theek hai, thank you" mid-call, so write a prompt that ends the call only after the agent's closing line. |
 | `calling_guardrails` | agent_config | – | Allowed calling hours for batches | Set them for any outbound use. |
 | input/output `provider` | tools_config | – | Telephony | For Indian numbers use Plivo, Exotel or Vobiz. Bolna's Indian-server routing (lower latency) needs Plivo plus Azure OpenAI as the LLM; Twilio calls are processed on US servers, and bringing your own provider keys routes calls through US servers too (https://www.bolna.ai/docs/enterprise/indian-server-configuration.md). |
 

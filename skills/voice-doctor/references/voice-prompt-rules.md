@@ -105,6 +105,8 @@ Real Indian callers mix languages. The prompt and the config must agree on how.
 - **Short sentences, point first, tag questions.** "…वाले address पर ही होगी ना?", "ಗುರುವಾರ, ಸರಿನಾ?" sound like people; 30-word chains of clauses don't.
 - **Punctuation for pauses**: commas for short pauses, "।" to end Hindi sentences (Sarvam's guidance). No SSML on Sarvam.
 - **Mirror the caller's mix.** If the caller leans English, lean English; if they speak pure Hindi, drop some loanwords. Bilingual users prefer agents that code-mix the way they do.
+- **What the model actually reads.** On Bolna, Sarvam speech-to-text in transcribe mode writes English words in Devanagari ("कन्फर्म", "कैंसल"). Trigger lists written in Roman script ("if they say confirm, haan, yes…") won't match; describe the intent instead ("if they agree to the order") and tell the model the transcript may mix scripts.
+- **"जी?" isn't always yes.** A bare "जी?", "हाँ?" or "haan?" with a rising tone often means "pardon?" or "go on". Count only a clear yes to the actual question as confirmation, and repeat the question otherwise.
 - **Names and brand words**: add them to the transcriber's keyword list (Bolna `keywords`; Sarvam saaras:v4 and Deepgram Nova-3 support keyterm biasing) so they're recognised, and test how the voice says them.
 
 ## 6. The welcome message

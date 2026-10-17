@@ -284,6 +284,12 @@ def audit(data: dict, expect_min: float | None) -> Audit:
     if outbound and not tc.get("voicemail"):
         a.add("voicemail-off", "medium", "task_config.voicemail", tc.get("voicemail", False), "true",
               "Outbound calls that hit voicemail get the whole script, and you pay for it.")
+    if tc.get("hangup_after_LLMCall") and not tc.get("call_cancellation_prompt"):
+        a.add("default-hangup-check", "medium", "task_config.call_cancellation_prompt", None,
+              "a prompt that ends the call only after your closing line",
+              "hangup_after_LLMCall is on with no call_cancellation_prompt, so Bolna's default check runs after each reply. "
+              "It treats 'thank you' or a caller who 'seems satisfied' as done, so a 'theek hai, thank you' mid-call can "
+              "end it before the caller answers.")
     trig = num(tc.get("trigger_user_online_message_after"))
     if tc.get("check_if_user_online") is not False and hs is not None and trig is not None and hs < trig:
         a.add("silence-hangup-before-check", "medium", "task_config.hangup_after_silence", int(hs), f"at least {int(trig)}",
