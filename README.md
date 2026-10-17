@@ -2,9 +2,9 @@
 
 # 🩺 voice-doctor
 
-**Your voice agent sounds like a chatbot reading a webpage. Fix it in one command.**
+**Your voice agent sounds robotic. voice-doctor finds out why and fixes it.**
 
-A Claude Code skill that checks your phone agent the way a caller hears it, then rewrites the prompt, fixes the config and tells you exactly what to test.
+A Claude Code skill that listens to your phone agent the way a caller does (prompt, config and real calls), finds what makes it sound robotic, slow or rude, then rewrites the prompt, fixes the config and tells you exactly what to test.
 Built for **Bolna + Sarvam**, Indian languages first. Works with any voice stack.
 
 [![tests](https://github.com/dakshinsiva/voice-doctor/actions/workflows/tests.yml/badge.svg)](https://github.com/dakshinsiva/voice-doctor/actions/workflows/tests.yml)
@@ -18,9 +18,9 @@ Built for **Bolna + Sarvam**, Indian languages first. Works with any voice stack
 claude plugin marketplace add dakshinsiva/voice-doctor && claude plugin install voice-doctor@voice-doctor
 ```
 
-Then, in Claude Code: *"check my Bolna agent before tomorrow's batch: agent.json"*
+Then, in Claude Code: *"my Bolna agent sounds robotic, here's the export: agent.json"*
 
-## Before → after
+## What robotic sounds like
 
 What callers heard from a real-shaped COD confirmation agent:
 
@@ -34,7 +34,7 @@ After voice-doctor:
 
 22 words. One question. Devanagari with English words left in English, the way Sarvam pronounces best. Says it's an AI. Checks who answered before sharing anything.
 
-## What it catches
+## Why agents sound robotic, and what it catches
 
 Found in testing, on synthetic agents, public Bolna agents from GitHub and a live Bolna account:
 
