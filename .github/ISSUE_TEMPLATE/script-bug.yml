@@ -1,0 +1,31 @@
+name: Script error
+description: One of the scripts crashed or printed something wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "**Redact first.** No API keys, phone numbers, names or addresses."
+  - type: dropdown
+    id: script
+    attributes:
+      label: Script
+      options: [lint_prompt.py, audit_config.py, call_stats.py, bolna_api.py]
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command you ran
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Error or wrong output
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version (python3 --version)
