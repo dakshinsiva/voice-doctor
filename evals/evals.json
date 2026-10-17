@@ -1,0 +1,69 @@
+{
+  "skill_name": "voice-doctor",
+  "evals": [
+    {
+      "id": 1,
+      "name": "cod-prompt-rewrite",
+      "prompt": "I built a COD order confirmation agent on Bolna for our online store (Sarvam Bulbul v4 Flash voice, Hindi). Customers say it sounds robotic and reads out weird stuff like hashes and links. The agent export is at {INPUTS}/cod-confirmation/agent.json. We pass customer_name, order_id, items, order_amount and address on each call. Can you fix the system prompt and welcome message?",
+      "expected_output": "Rewritten system prompt and welcome message: Devanagari Hindi with English words in Latin script, short welcome with AI disclosure and one question, no links/emails/order IDs read aloud, speaking and situation rules, flags delivery_date as not passed, language handling via multilingual_config rather than prompt rules, before/after speakability score.",
+      "files": [
+        "examples/cod-confirmation/agent.json"
+      ],
+      "assertions": [
+        "Delivers a rewritten system prompt as a file",
+        "Rewritten welcome message is 30 words or fewer",
+        "Welcome says the caller is talking to an AI assistant",
+        "Welcome asks at most one question",
+        "Hindi in the rewritten welcome is in Devanagari, not romanised",
+        "Prompt tells the agent not to read links or emails aloud and to send them by WhatsApp/SMS instead",
+        "Prompt stops the agent reading the order ID aloud",
+        "Flags that delivery_date is used but not passed per call",
+        "Handles Kannada/Tamil callers via Bolna multilingual_config (or flags it as a config change), not only a 'reply in the caller's language' prompt rule",
+        "Prompt has a brevity rule (one or two sentences per turn)",
+        "Prompt covers busy, wrong person and voicemail situations",
+        "Rewritten prompt + welcome score 85+ on lint_prompt.py with --tts sarvam-v4"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "appointment-config-audit",
+      "prompt": "Our Bolna appointment-reminder agent for a dental clinic in Bengaluru has a long awkward pause before it answers, older patients say it doesn't understand their Kannada, and they can't get a word in once it starts talking. Config export: {INPUTS}/appointment-reminder/agent.json. What should I change in the config?",
+      "expected_output": "Field-level config changes: replace ElevenLabs (no Kannada) with a Kannada-capable voice such as Sarvam, move STT off nova-2 to Sarvam saaras:v4 or nova-3, lower endpointing from 900, lower number_of_words_for_interruption from 6, raise hangup_after_silence from 4, raise call_terminate above the 3-minute flow, uses Bolna field names, does not claim to apply changes.",
+      "files": [
+        "examples/appointment-reminder/agent.json"
+      ],
+      "assertions": [
+        "Says ElevenLabs can't speak Kannada and recommends a Kannada-capable voice such as Sarvam Bulbul",
+        "Recommends moving speech-to-text off Deepgram nova-2 (to Sarvam saaras:v4 or Nova-3)",
+        "Identifies endpointing 900 ms as a cause of the pause and recommends lowering it",
+        "Identifies number_of_words_for_interruption = 6 as why callers can't interrupt and recommends lowering it",
+        "Flags hangup_after_silence = 4 s as too short for older callers",
+        "Flags call_terminate = 120 s as shorter than the roughly 3-minute call",
+        "Uses Bolna's real field names for each change",
+        "Does not claim to have changed the live agent"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "cod-call-review",
+      "prompt": "Here are last week's calls from our COD confirmation agent on Bolna: {INPUTS}/cod-confirmation/executions.json (agent config is agent.json in the same folder). Confirmation rate is bad and some customers complained. What's going wrong on the calls and what should we fix first?",
+      "expected_output": "Prioritised diagnosis tied to evidence: calls cut off at 90 s by call_terminate, LLM first-token latency as the slowest component (reasoning_effort/model), agent cutting in while callers give address and pincode (endpointing 100), voicemail getting the full script, Kannada caller not handled, repeated prepaid upsell loop, unspeakable output (markdown, links, order IDs), with personal data masked.",
+      "files": [
+        "examples/cod-confirmation/executions.json",
+        "examples/cod-confirmation/agent.json"
+      ],
+      "assertions": [
+        "Identifies calls being cut off at 90 s by call_terminate",
+        "Identifies LLM first-token latency as the slowest component and links it to reasoning_effort or model size",
+        "Identifies the agent cutting in while callers give address or pincode, and links it to endpointing 100 ms",
+        "Identifies the voicemail call getting the full script / voicemail detection off",
+        "Identifies the Kannada-speaking caller not being handled",
+        "Identifies the repeated prepaid upsell loop",
+        "Identifies unspeakable output actually spoken on calls (markdown, links or order ID)",
+        "Gives a prioritised fix-first list",
+        "Quantifies latency with numbers from latency_data",
+        "Does not reproduce the customer's full street address in the report"
+      ]
+    }
+  ]
+}
