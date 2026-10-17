@@ -10,7 +10,6 @@
         "examples/cod-confirmation/agent.json"
       ],
       "assertions": [
-        "Delivers a rewritten system prompt as a file",
         "Rewritten welcome message is 30 words or fewer",
         "Welcome says the caller is talking to an AI assistant",
         "Welcome asks at most one question",
@@ -21,7 +20,12 @@
         "Handles Kannada/Tamil callers via Bolna multilingual_config (or flags it as a config change), not only a 'reply in the caller's language' prompt rule",
         "Prompt has a brevity rule (one or two sentences per turn)",
         "Prompt covers busy, wrong person and voicemail situations",
-        "Rewritten prompt + welcome score 85+ on lint_prompt.py with --tts sarvam-v4"
+        "Rewritten prompt + welcome score 85+ on lint_prompt.py with --tts sarvam-v4",
+        "Flags that the voice 'anushka' is not a valid bulbul:v4-flash voice",
+        "Welcome reveals no order details before the customer confirms who they are",
+        "Gives {{items}} and {{address}} a spoken form instead of dropping them raw into scripted lines",
+        "Rewritten system prompt is under 1,000 words",
+        "Makes no false claims about providers, models or Bolna fields"
       ]
     },
     {
@@ -40,7 +44,12 @@
         "Flags hangup_after_silence = 4 s as too short for older callers",
         "Flags call_terminate = 120 s as shorter than the roughly 3-minute call",
         "Uses Bolna's real field names for each change",
-        "Does not claim to have changed the live agent"
+        "Does not claim to have changed the live agent",
+        "Keeps an explicit endpointing value when switching the transcriber provider",
+        "Notices hangup_after_silence (4 s) ends the call before the 10 s user-online check can play",
+        "Flags that Twilio calls run on US servers or recommends Indian telephony",
+        "Flags that call outcomes aren't captured (no webhook, extraction or summary)",
+        "Makes no false claims about providers, models or Bolna fields"
       ]
     },
     {
@@ -62,7 +71,33 @@
         "Identifies unspeakable output actually spoken on calls (markdown, links or order ID)",
         "Gives a prioritised fix-first list",
         "Quantifies latency with numbers from latency_data",
-        "Does not reproduce the customer's full street address in the report"
+        "Does not reproduce the customer's full street address in the report",
+        "Flags that the voice 'anushka' is not a valid bulbul:v4-flash voice",
+        "Reports accurate latency: LLM first token p50 about 1,480 ms and p95 about 1,910 ms",
+        "Main report is under 1,500 words",
+        "Makes no false claims about providers, models or Bolna fields"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "real-cod-hinglish",
+      "prompt": "We're adapting this open-source Bolna COD confirmation agent for our store before launch. Agent config: {INPUTS}/real-cod/agent.json. Can you check it and fix whatever's wrong with the prompt, welcome and settings?",
+      "expected_output": "Native-script rewrite for the Sarvam voice, catches the ***REMOVED*** placeholder and the never-passed {{time}} variable, fixes how the order number and amount are spoken, confirms identity before details, adds AI disclosure, flags the English online-check message, single-word interruption and voicemail off, and notes the human-handoff promise has nothing behind it.",
+      "files": [
+        "voice-doctor-workspace/inputs/real-cod/agent.json (from github.com/Nuraveda/ai-voice-agent @58f055e, MIT)"
+      ],
+      "assertions": [
+        "Rewrites the Hindi in Devanagari, with English words in Latin script, for the Sarvam voice",
+        "Catches the literal '***REMOVED***' placeholder in the persona line",
+        "Flags {{time}} as a variable that is never passed per call",
+        "Fixes how the order number and the 'Rs.' amount are spoken (or stops reading the order number)",
+        "Confirms the customer's identity before reading order details",
+        "Adds an AI-assistant disclosure to the welcome",
+        "Flags the English 'Hello, are you still there?' check message in a Hindi call",
+        "Flags number_of_words_for_interruption = 1",
+        "Flags voicemail detection being off for outbound calls",
+        "Notes the 'connect to a customer care agent' promise has no transfer or callback mechanism behind it",
+        "Makes no false claims about providers, models or Bolna fields"
       ]
     }
   ]
