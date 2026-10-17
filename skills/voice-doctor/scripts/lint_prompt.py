@@ -321,7 +321,11 @@ def lint(prompt: str, welcome: str | None, known_vars: set[str] | None, tts: str
                    line_of(prompt, ph.start()) if ph.start() < len(prompt) else None, short(ph.group(0), 60))
 
     # 2. Languages and script.
-    langs = [l for l in INDIAN_LANGUAGES if re.search(rf"\b{l}\b", low)]
+    # Languages the agent is expected to speak: ignore sentences that name a language
+    # only to rule it out ("if they speak Kannada, apologise in English and end").
+    negation = re.compile(r"\b(?:not|never|don'?t|do not|cannot|can'?t|only (?:hindi|english)|apologi[sz]e|hand ?off|end the call)\b|नहीं")
+    positive = " ".join(sent for sent in re.split(r"(?<=[.!?।\n])\s*", low) if not negation.search(sent))
+    langs = [l for l in INDIAN_LANGUAGES if re.search(rf"\b{l}\b", positive)]
     report.stats["indian_languages_mentioned"] = langs
     switching = re.search(r"switch|same language|language (?:the )?(?:user|caller|customer|they)|reply in|respond in|mirror", low)
     if len(langs) >= 2 and switching and not multilingual_enabled:

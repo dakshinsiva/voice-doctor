@@ -121,5 +121,5 @@ The prompt rules and the call review work on any stack (Vapi, Retell, LiveKit, P
 
 - **Vendor docs conflict** in places (Sarvam number preprocessing, ElevenLabs normalisation defaults, Bolna default values). When a fix depends on one, say so and make it part of the test call instead of stating it as fact.
 - **Don't promise latency numbers.** Say what should improve and how to check it in the next calls' `latency_data`.
-- **Transcripts contain personal data** (names, phone numbers, addresses). Quote only what's needed as evidence and mask phone numbers and addresses in the report.
+- **Transcripts contain personal data** (names, phone numbers, addresses). Quote only what's needed as evidence, and mask it: "flat [n], [building], near …", "pincode [6 digits]", "+91 98xxx xxxxx". Don't reuse a caller's real pincode or address as an example in the rewritten prompt.
 - **One bad call vs many**: for a deep dive into a single execution's raw logs, Bolna's own `debug-bolna-calls` skill is built for that; mention it if the user has Bolna's skills installed.
