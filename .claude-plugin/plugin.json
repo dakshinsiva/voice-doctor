@@ -1,0 +1,12 @@
+{
+  "name": "voice-doctor",
+  "description": "Checkup for phone voice agents: makes prompts speakable, audits latency and turn-taking settings, and reviews real call transcripts. Built for Bolna with Sarvam, Deepgram, Cartesia and ElevenLabs; works on any voice stack.",
+  "version": "0.1.0",
+  "author": {
+    "name": "dakshinsiva"
+  },
+  "homepage": "https://github.com/dakshinsiva/voice-doctor",
+  "repository": "https://github.com/dakshinsiva/voice-doctor",
+  "license": "MIT",
+  "keywords": ["voice-ai", "voice-agent", "bolna", "sarvam", "tts", "stt", "latency", "prompt", "india"]
+}

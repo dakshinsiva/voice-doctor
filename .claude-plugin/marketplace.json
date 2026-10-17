@@ -1,0 +1,15 @@
+{
+  "name": "voice-doctor",
+  "description": "voice-doctor: a checkup for phone voice agents on Bolna and other stacks.",
+  "owner": {
+    "name": "dakshinsiva"
+  },
+  "plugins": [
+    {
+      "name": "voice-doctor",
+      "description": "Checkup for phone voice agents: speakable prompts, latency and turn-taking audit, call transcript review. Bolna-first, works on any stack.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}
