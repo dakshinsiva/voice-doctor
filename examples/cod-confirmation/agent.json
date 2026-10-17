@@ -1,0 +1,84 @@
+{
+  "_note": "Synthetic example for voice-doctor tests. Field names follow Bolna's v2 agent API; values are made up.",
+  "agent_config": {
+    "agent_name": "COD Confirmation - Acme Bazaar",
+    "agent_welcome_message": "Namaste {{customer_name}} ji! Main Neha bol rahi hoon Acme Bazaar se. Aapne humare store se ek Cash on Delivery order place kiya hai, order number {{order_id}}, jiski amount ₹{{order_amount}} hai. Kya aap abhi order confirm karna chahenge? Aur kya delivery address same rahega?",
+    "webhook_url": "https://hooks.acmebazaar.example/bolna",
+    "agent_type": "other",
+    "tasks": [
+      {
+        "task_type": "conversation",
+        "toolchain": {
+          "execution": "parallel",
+          "pipelines": [
+            [
+              "transcriber",
+              "llm",
+              "synthesizer"
+            ]
+          ]
+        },
+        "tools_config": {
+          "llm_agent": {
+            "agent_type": "simple_llm_agent",
+            "agent_flow_type": "streaming",
+            "llm_config": {
+              "provider": "openai",
+              "model": "gpt-5.4",
+              "max_tokens": 400,
+              "temperature": 1,
+              "reasoning_effort": "medium"
+            }
+          },
+          "synthesizer": {
+            "provider": "sarvam",
+            "provider_config": {
+              "voice": "anushka",
+              "model": "bulbul:v4-flash",
+              "language": "hi-IN"
+            },
+            "stream": true,
+            "caching": true,
+            "buffer_size": 400,
+            "audio_format": "wav"
+          },
+          "transcriber": {
+            "provider": "deepgram",
+            "model": "nova-3",
+            "language": "hi",
+            "stream": true,
+            "sampling_rate": 16000,
+            "encoding": "linear16",
+            "endpointing": 100,
+            "keywords": ""
+          },
+          "input": {
+            "provider": "plivo",
+            "format": "wav"
+          },
+          "output": {
+            "provider": "plivo",
+            "format": "wav"
+          },
+          "api_tools": null
+        },
+        "task_config": {
+          "hangup_after_silence": 30,
+          "incremental_delay": 900,
+          "number_of_words_for_interruption": 1,
+          "backchanneling": false,
+          "ambient_noise": false,
+          "call_terminate": 90,
+          "voicemail": false,
+          "check_if_user_online": false,
+          "trigger_user_online_message_after": 10
+        }
+      }
+    ]
+  },
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "## Role\nYou are Neha, a customer support executive for **Acme Bazaar**, an online store. You call customers who placed Cash on Delivery (COD) orders to confirm the order before we ship it.\n\n## Order details\n- Customer: {{customer_name}}\n- Order ID: {{order_id}}\n- Items: {{items}}\n- Amount: {{order_amount}}\n- Delivery address: {{address}}\n- Expected delivery: {{delivery_date}}\n\n## Steps\n1. Greet the customer and verify their name.\n2. Read out the order details (order ID, items, amount, address) and ask them to confirm.\n3. If they confirm, say: \"Dhanyavaad! Aapka order confirm ho gaya hai. Aapka order #{{order_id}} {{delivery_date}} tak deliver ho jayega. Kripya ₹{{order_amount}} cash ready rakhein.\"\n4. If they want to cancel, ask the reason and mark it cancelled.\n5. If they want to change the address, collect the full new address with pincode and landmark.\n6. Tell them they can track the order at https://acmebazaar.example/track or email support@acmebazaar.example for help.\n7. Offer prepaid: if they pay online now via UPI they get ₹50 off (use code PREPAID50).\n\n## Language\nCustomers may speak Hindi, English, Kannada or Tamil. Always reply in the language the customer uses.\n\n## Rules\n- Be polite and professional 🙏\n- Give complete information so the customer has no confusion.\n- This call should take 2-3 minutes.\n"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "_note": "Synthetic example for voice-doctor tests. Field names follow Bolna's v2 agent API; values are made up.",
+  "agent_config": {
+    "agent_name": "SmileCare appointment reminder",
+    "agent_welcome_message": "ನಮಸ್ಕಾರ {{patient_name}} ಅವರೇ, ನಾನು SmileCare Dental Clinic ನಿಂದ AI assistant ಕಾವ್ಯ. ನಾಳೆಯ appointment ಬಗ್ಗೆ ಕರೆ ಮಾಡಿದ್ದೇನೆ. ಈಗ ಮಾತನಾಡಬಹುದೇ?",
+    "calling_guardrails": {
+      "call_start_hour": 9,
+      "call_end_hour": 19
+    },
+    "tasks": [
+      {
+        "task_type": "conversation",
+        "toolchain": {
+          "execution": "parallel",
+          "pipelines": [
+            [
+              "transcriber",
+              "llm",
+              "synthesizer"
+            ]
+          ]
+        },
+        "tools_config": {
+          "llm_agent": {
+            "agent_type": "simple_llm_agent",
+            "agent_flow_type": "streaming",
+            "llm_config": {
+              "provider": "openai",
+              "model": "gpt-4.1",
+              "max_tokens": 150,
+              "temperature": 0.3
+            }
+          },
+          "synthesizer": {
+            "provider": "elevenlabs",
+            "provider_config": {
+              "voice": "Kavya",
+              "voice_id": "kv-demo-voice-id",
+              "model": "eleven_turbo_v2_5",
+              "language": "kn"
+            },
+            "stream": true,
+            "caching": true,
+            "buffer_size": 150,
+            "audio_format": "wav"
+          },
+          "transcriber": {
+            "provider": "deepgram",
+            "model": "nova-2",
+            "language": "kn",
+            "stream": true,
+            "endpointing": 900,
+            "keywords": "SmileCare,Jayanagar"
+          },
+          "input": {
+            "provider": "twilio",
+            "format": "wav"
+          },
+          "output": {
+            "provider": "twilio",
+            "format": "wav"
+          }
+        },
+        "task_config": {
+          "hangup_after_silence": 4,
+          "incremental_delay": 300,
+          "number_of_words_for_interruption": 6,
+          "call_terminate": 120,
+          "voicemail": true,
+          "check_if_user_online": true,
+          "trigger_user_online_message_after": 10
+        }
+      }
+    ]
+  },
+  "agent_prompts": {
+    "task_1": {
+      "system_prompt": "# Who you are\nYou are Kavya, the AI assistant for SmileCare Dental Clinic in Jayanagar, Bengaluru. You call patients a day before their appointment to confirm it.\n\n# How you speak\nSpeak in short, simple sentences. Do not use lists or special characters.\n\n# Language\nPatients are mostly older Bengaluru residents. Speak in Kannada. Use simple Kannada words; keep words like appointment, doctor, clinic in English.\n\n# Call flow\n1. Confirm you are speaking to {{patient_name}}.\n2. Remind them of their appointment with {{doctor_name}} on {{appointment_time}}.\n3. Ask if they can come. If yes, remind them to arrive 10 minutes early and bring old X-rays if they have them.\n4. If no, ask for a better day this week and say the clinic will call back to confirm the new time.\n5. If they have pain or swelling today, tell them to call the clinic directly.\n6. Thank them and end the call.\n\nThe whole call takes about 3 minutes.\n"
+    }
+  }
+}

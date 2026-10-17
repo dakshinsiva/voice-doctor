@@ -1,0 +1,677 @@
+{
+  "_note": "Synthetic calls for voice-doctor tests; shaped like Bolna's executions API, values made up.",
+  "agent_id": "demo-agent",
+  "data": [
+    {
+      "id": "exe_demo_01",
+      "conversation_duration": 90,
+      "answered_by_voice_mail": false,
+      "status": "completed",
+      "telephony_data": {
+        "duration": 92,
+        "hangup_by": "system",
+        "hangup_reason": "max_call_duration",
+        "call_type": "outbound",
+        "provider": "plivo"
+      },
+      "total_cost": 14.2,
+      "transcript": "assistant: Namaste Rahul ji! Main Neha bol rahi hoon Acme Bazaar se. Aapne humare store se ek Cash on Delivery order place kiya hai, order number AB-20931, jiski amount ₹1,499 hai. Kya aap abhi order confirm karna chahenge? Aur kya delivery address same rahega?\nuser: haan haan, address change karna hai\nassistant: Theek hai Rahul ji. Kripya apna naya address batayein, jismein house number, street, area, landmark aur pincode ho, taaki hum aapka order sahi jagah deliver kar sakein.\nuser: flat 12, Sai Residency, near\nassistant: Ji, aapne kaha flat 402 Green Park apartments. Kya aap pincode bata sakte hain?\nuser: main bol raha tha near metro station, pincode five six zero\nassistant: Maaf kijiye, kya aap pincode dobara bata sakte hain?\nuser: hello? five six zero zero seven eight\nassistant: Dhanyavaad. Aapka naya address hai: **Flat 12, Sai Residency, near Bus Stand, 560078**. Aapka order #AB-20931 18/10 tak deliver ho jayega. Aap apna order https://acmebazaar.example/track par track kar sakte hain. Kya aap online pay karke ₹50 bachana chahenge? Iske liye code PREPAID50 use karein aur",
+      "latency_data": {
+        "time_to_first_audio": 1480,
+        "region": "in",
+        "transcriber": {
+          "time_to_connect": 210,
+          "turns": [
+            {
+              "turn": 1,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 80,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 2,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 95,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 3,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 120,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 4,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 70,
+                  "text": "…"
+                }
+              ]
+            }
+          ]
+        },
+        "llm": {
+          "time_to_connect": 0,
+          "turns": [
+            {
+              "turn": 1,
+              "time_to_first_token": 1450,
+              "time_to_last_token": 2350
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 1720,
+              "time_to_last_token": 2620
+            },
+            {
+              "turn": 3,
+              "time_to_first_token": 1380,
+              "time_to_last_token": 2280
+            },
+            {
+              "turn": 4,
+              "time_to_first_token": 1910,
+              "time_to_last_token": 2810
+            }
+          ]
+        },
+        "synthesizer": {
+          "time_to_connect": 180,
+          "turns": [
+            {
+              "turn": -1,
+              "time_to_first_token": 640,
+              "time_to_last_token": 4100
+            },
+            {
+              "turn": 1,
+              "time_to_first_token": 520,
+              "time_to_last_token": 3020
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 610,
+              "time_to_last_token": 3110
+            },
+            {
+              "turn": 3,
+              "time_to_first_token": 480,
+              "time_to_last_token": 2980
+            },
+            {
+              "turn": 4,
+              "time_to_first_token": 700,
+              "time_to_last_token": 3200
+            }
+          ]
+        },
+        "interruption_stats": {
+          "total_interruptions": 6,
+          "user_interrupted_agent_count": 3,
+          "agent_interrupted_user_count": 3,
+          "user_speaking_ms": 27692,
+          "agent_speaking_ms": 44308,
+          "longest_agent_monologue_ms": 19500,
+          "talk_to_listen_ratio": 1.6,
+          "barge_in_recovery_rate": 0.5,
+          "barge_in_recovery_count": 1
+        }
+      },
+      "usage_breakdown": {
+        "transcriber": {
+          "provider": "deepgram",
+          "model": "nova-3",
+          "language": "hi"
+        },
+        "synthesizer": {
+          "provider": "sarvam",
+          "model": "bulbul:v4-flash"
+        },
+        "llmModel": {
+          "gpt-5.4": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        "endpointing": 100,
+        "incremental_delay": 900,
+        "buffer_size": 400,
+        "hangup_after_silence": 30
+      }
+    },
+    {
+      "id": "exe_demo_02",
+      "conversation_duration": 52,
+      "answered_by_voice_mail": false,
+      "status": "completed",
+      "telephony_data": {
+        "duration": 54,
+        "hangup_by": "agent",
+        "hangup_reason": "agent_hangup",
+        "call_type": "outbound",
+        "provider": "plivo"
+      },
+      "total_cost": 8.4,
+      "transcript": "assistant: Namaste Sunita ji! Main Neha bol rahi hoon Acme Bazaar se. Aapne humare store se ek Cash on Delivery order place kiya hai, order number AB-20944, jiski amount ₹2,350 hai. Kya aap abhi order confirm karna chahenge? Aur kya delivery address same rahega?\nuser: haan confirm hai\nassistant: Dhanyavaad! Aapka order confirm ho gaya hai. Aapka order #AB-20944 18/10 tak deliver ho jayega. Kripya ₹2,350 cash ready rakhein. Aap online pay karke ₹50 bacha sakte hain, code PREPAID50 use karke. Kya main aapki aur kisi cheez mein madad kar sakti hoon?\nuser: nahi bas\nassistant: Dhanyavaad Sunita ji, aapka din shubh ho!",
+      "latency_data": {
+        "time_to_first_audio": 1390,
+        "region": "in",
+        "transcriber": {
+          "time_to_connect": 210,
+          "turns": [
+            {
+              "turn": 1,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 60,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 2,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 75,
+                  "text": "…"
+                }
+              ]
+            }
+          ]
+        },
+        "llm": {
+          "time_to_connect": 0,
+          "turns": [
+            {
+              "turn": 1,
+              "time_to_first_token": 1210,
+              "time_to_last_token": 2110
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 1340,
+              "time_to_last_token": 2240
+            }
+          ]
+        },
+        "synthesizer": {
+          "time_to_connect": 180,
+          "turns": [
+            {
+              "turn": -1,
+              "time_to_first_token": 640,
+              "time_to_last_token": 4100
+            },
+            {
+              "turn": 1,
+              "time_to_first_token": 450,
+              "time_to_last_token": 2950
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 520,
+              "time_to_last_token": 3020
+            }
+          ]
+        },
+        "interruption_stats": {
+          "total_interruptions": 1,
+          "user_interrupted_agent_count": 1,
+          "agent_interrupted_user_count": 0,
+          "user_speaking_ms": 14344,
+          "agent_speaking_ms": 27256,
+          "longest_agent_monologue_ms": 16200,
+          "talk_to_listen_ratio": 1.9,
+          "barge_in_recovery_rate": 0.5,
+          "barge_in_recovery_count": 1
+        }
+      },
+      "usage_breakdown": {
+        "transcriber": {
+          "provider": "deepgram",
+          "model": "nova-3",
+          "language": "hi"
+        },
+        "synthesizer": {
+          "provider": "sarvam",
+          "model": "bulbul:v4-flash"
+        },
+        "llmModel": {
+          "gpt-5.4": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        "endpointing": 100,
+        "incremental_delay": 900,
+        "buffer_size": 400,
+        "hangup_after_silence": 30
+      }
+    },
+    {
+      "id": "exe_demo_03",
+      "conversation_duration": 61,
+      "answered_by_voice_mail": true,
+      "status": "completed",
+      "telephony_data": {
+        "duration": 63,
+        "hangup_by": "agent",
+        "hangup_reason": "agent_hangup",
+        "call_type": "outbound",
+        "provider": "plivo"
+      },
+      "total_cost": 9.8,
+      "transcript": "assistant: Namaste Imran ji! Main Neha bol rahi hoon Acme Bazaar se. Aapne humare store se ek Cash on Delivery order place kiya hai, order number AB-20957, jiski amount ₹899 hai. Kya aap abhi order confirm karna chahenge? Aur kya delivery address same rahega?\nuser: The number you are calling is not available. Please leave a message after the beep.\nassistant: Ji, main samajh gayi. Aapka order #AB-20957 ₹899 ka hai aur 18/10 tak deliver hoga. Kripya order confirm karne ke liye humein call karein ya https://acmebazaar.example/track par jaayein. Dhanyavaad!",
+      "latency_data": {
+        "time_to_first_audio": 1450,
+        "region": "in",
+        "transcriber": {
+          "time_to_connect": 210,
+          "turns": [
+            {
+              "turn": 1,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 90,
+                  "text": "…"
+                }
+              ]
+            }
+          ]
+        },
+        "llm": {
+          "time_to_connect": 0,
+          "turns": [
+            {
+              "turn": 1,
+              "time_to_first_token": 1300,
+              "time_to_last_token": 2200
+            }
+          ]
+        },
+        "synthesizer": {
+          "time_to_connect": 180,
+          "turns": [
+            {
+              "turn": -1,
+              "time_to_first_token": 640,
+              "time_to_last_token": 4100
+            },
+            {
+              "turn": 1,
+              "time_to_first_token": 560,
+              "time_to_last_token": 3060
+            }
+          ]
+        },
+        "interruption_stats": {
+          "total_interruptions": 0,
+          "user_interrupted_agent_count": 0,
+          "agent_interrupted_user_count": 0,
+          "user_speaking_ms": 9760,
+          "agent_speaking_ms": 39040,
+          "longest_agent_monologue_ms": 21000,
+          "talk_to_listen_ratio": 4.0,
+          "barge_in_recovery_rate": 0.5,
+          "barge_in_recovery_count": 1
+        }
+      },
+      "usage_breakdown": {
+        "transcriber": {
+          "provider": "deepgram",
+          "model": "nova-3",
+          "language": "hi"
+        },
+        "synthesizer": {
+          "provider": "sarvam",
+          "model": "bulbul:v4-flash"
+        },
+        "llmModel": {
+          "gpt-5.4": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        "endpointing": 100,
+        "incremental_delay": 900,
+        "buffer_size": 400,
+        "hangup_after_silence": 30
+      }
+    },
+    {
+      "id": "exe_demo_04",
+      "conversation_duration": 0,
+      "answered_by_voice_mail": false,
+      "status": "no-answer",
+      "telephony_data": {
+        "duration": 0,
+        "hangup_by": null,
+        "hangup_reason": "no_answer",
+        "call_type": "outbound",
+        "provider": "plivo"
+      },
+      "total_cost": 0.6,
+      "transcript": "",
+      "usage_breakdown": {
+        "transcriber": {
+          "provider": "deepgram",
+          "model": "nova-3",
+          "language": "hi"
+        },
+        "synthesizer": {
+          "provider": "sarvam",
+          "model": "bulbul:v4-flash"
+        },
+        "llmModel": {
+          "gpt-5.4": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        "endpointing": 100,
+        "incremental_delay": 900,
+        "buffer_size": 400,
+        "hangup_after_silence": 30
+      }
+    },
+    {
+      "id": "exe_demo_05",
+      "conversation_duration": 90,
+      "answered_by_voice_mail": false,
+      "status": "completed",
+      "telephony_data": {
+        "duration": 91,
+        "hangup_by": "system",
+        "hangup_reason": "max_call_duration",
+        "call_type": "outbound",
+        "provider": "plivo"
+      },
+      "total_cost": 14.0,
+      "transcript": "assistant: Namaste Pooja ji! Main Neha bol rahi hoon Acme Bazaar se. Aapne humare store se ek Cash on Delivery order place kiya hai, order number AB-20962, jiski amount ₹1,499 hai. Kya aap abhi order confirm karna chahenge? Aur kya delivery address same rahega?\nuser: ruko ruko, pehle batao kitne items hain\nassistant: Aapke order mein 2 items hain: 1. Cotton Kurta (Blue, L) - ₹999 aur 2. Dupatta (Red) - ₹500. Total amount ₹1,499 hai. Kya aap order confirm karna chahenge?\nuser: haan, aur cash hi dunga\nassistant: Theek hai. Kya aap online pay karke ₹50 bachana chahenge? Iske liye UPI se pay karein aur code PREPAID50 use karein.\nuser: nahi nahi cash\nassistant: Theek hai. Kya aap online pay karke ₹50 bachana chahenge? Iske liye UPI se pay karein aur code PREPAID50 use karein.\nuser: maine bola na cash\nassistant: Ji samajh gayi. Aapka order confirm ho gaya hai. Aapka order #AB-20962 18/10 tak deliver ho jayega. Kripya ₹1,499 cash ready rakhein. Kisi bhi help ke liye aap support@acmebazaar.example par email kar sakte hain ya",
+      "latency_data": {
+        "time_to_first_audio": 1510,
+        "region": "in",
+        "transcriber": {
+          "time_to_connect": 210,
+          "turns": [
+            {
+              "turn": 1,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 70,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 2,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 85,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 3,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 65,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 4,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 110,
+                  "text": "…"
+                }
+              ]
+            }
+          ]
+        },
+        "llm": {
+          "time_to_connect": 0,
+          "turns": [
+            {
+              "turn": 1,
+              "time_to_first_token": 1530,
+              "time_to_last_token": 2430
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 1610,
+              "time_to_last_token": 2510
+            },
+            {
+              "turn": 3,
+              "time_to_first_token": 1440,
+              "time_to_last_token": 2340
+            },
+            {
+              "turn": 4,
+              "time_to_first_token": 1820,
+              "time_to_last_token": 2720
+            }
+          ]
+        },
+        "synthesizer": {
+          "time_to_connect": 180,
+          "turns": [
+            {
+              "turn": -1,
+              "time_to_first_token": 640,
+              "time_to_last_token": 4100
+            },
+            {
+              "turn": 1,
+              "time_to_first_token": 590,
+              "time_to_last_token": 3090
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 650,
+              "time_to_last_token": 3150
+            },
+            {
+              "turn": 3,
+              "time_to_first_token": 540,
+              "time_to_last_token": 3040
+            },
+            {
+              "turn": 4,
+              "time_to_first_token": 610,
+              "time_to_last_token": 3110
+            }
+          ]
+        },
+        "interruption_stats": {
+          "total_interruptions": 5,
+          "user_interrupted_agent_count": 4,
+          "agent_interrupted_user_count": 1,
+          "user_speaking_ms": 26666,
+          "agent_speaking_ms": 45334,
+          "longest_agent_monologue_ms": 18800,
+          "talk_to_listen_ratio": 1.7,
+          "barge_in_recovery_rate": 0.5,
+          "barge_in_recovery_count": 1
+        }
+      },
+      "usage_breakdown": {
+        "transcriber": {
+          "provider": "deepgram",
+          "model": "nova-3",
+          "language": "hi"
+        },
+        "synthesizer": {
+          "provider": "sarvam",
+          "model": "bulbul:v4-flash"
+        },
+        "llmModel": {
+          "gpt-5.4": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        "endpointing": 100,
+        "incremental_delay": 900,
+        "buffer_size": 400,
+        "hangup_after_silence": 30
+      }
+    },
+    {
+      "id": "exe_demo_06",
+      "conversation_duration": 41,
+      "answered_by_voice_mail": false,
+      "status": "completed",
+      "telephony_data": {
+        "duration": 43,
+        "hangup_by": "user",
+        "hangup_reason": "user_hangup",
+        "call_type": "outbound",
+        "provider": "plivo"
+      },
+      "total_cost": 6.9,
+      "transcript": "assistant: Namaste Lakshmi ji! Main Neha bol rahi hoon Acme Bazaar se. Aapne humare store se ek Cash on Delivery order place kiya hai, order number AB-20978, jiski amount ₹3,200 hai. Kya aap abhi order confirm karna chahenge? Aur kya delivery address same rahega?\nuser: ನನಗೆ ಹಿಂದಿ ಬರಲ್ಲ, ಕನ್ನಡದಲ್ಲಿ ಹೇಳಿ\nassistant: Maaf kijiye, main samajh nahi paayi. Kya aap order confirm karna chahenge?\nuser: Kannada please\nassistant: ಖಂಡಿತ! ನಿಮ್ಮ ಆರ್ಡರ್ #AB-20978 ₹3,200 ಆಗಿದೆ. ನೀವು ಆರ್ಡರ್ ಅನ್ನು ಖಚಿತಪಡಿಸಲು ಬಯಸುತ್ತೀರಾ?\nuser: hello? hello?\nassistant: Maaf kijiye, main samajh nahi paayi. Kya aap order confirm karna chahenge?",
+      "latency_data": {
+        "time_to_first_audio": 1420,
+        "region": "in",
+        "transcriber": {
+          "time_to_connect": 210,
+          "turns": [
+            {
+              "turn": 1,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 140,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 2,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 160,
+                  "text": "…"
+                }
+              ]
+            },
+            {
+              "turn": 3,
+              "turn_latency": [
+                {
+                  "sequence_id": 1,
+                  "audio_to_text_latency": 130,
+                  "text": "…"
+                }
+              ]
+            }
+          ]
+        },
+        "llm": {
+          "time_to_connect": 0,
+          "turns": [
+            {
+              "turn": 1,
+              "time_to_first_token": 1390,
+              "time_to_last_token": 2290
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 1650,
+              "time_to_last_token": 2550
+            },
+            {
+              "turn": 3,
+              "time_to_first_token": 1480,
+              "time_to_last_token": 2380
+            }
+          ]
+        },
+        "synthesizer": {
+          "time_to_connect": 180,
+          "turns": [
+            {
+              "turn": -1,
+              "time_to_first_token": 640,
+              "time_to_last_token": 4100
+            },
+            {
+              "turn": 1,
+              "time_to_first_token": 530,
+              "time_to_last_token": 3030
+            },
+            {
+              "turn": 2,
+              "time_to_first_token": 690,
+              "time_to_last_token": 3190
+            },
+            {
+              "turn": 3,
+              "time_to_first_token": 560,
+              "time_to_last_token": 3060
+            }
+          ]
+        },
+        "interruption_stats": {
+          "total_interruptions": 3,
+          "user_interrupted_agent_count": 2,
+          "agent_interrupted_user_count": 1,
+          "user_speaking_ms": 14260,
+          "agent_speaking_ms": 18540,
+          "longest_agent_monologue_ms": 15400,
+          "talk_to_listen_ratio": 1.3,
+          "barge_in_recovery_rate": 0.5,
+          "barge_in_recovery_count": 1
+        }
+      },
+      "usage_breakdown": {
+        "transcriber": {
+          "provider": "deepgram",
+          "model": "nova-3",
+          "language": "hi"
+        },
+        "synthesizer": {
+          "provider": "sarvam",
+          "model": "bulbul:v4-flash"
+        },
+        "llmModel": {
+          "gpt-5.4": {
+            "input": 0,
+            "output": 0
+          }
+        },
+        "endpointing": 100,
+        "incremental_delay": 900,
+        "buffer_size": 400,
+        "hangup_after_silence": 30
+      }
+    }
+  ]
+}
