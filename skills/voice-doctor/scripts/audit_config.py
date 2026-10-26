@@ -27,7 +27,7 @@ from dataclasses import asdict, dataclass, field
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lint_prompt import (INDIAN_LANGUAGES, PROMPT_KEYS, SEVERITY_COST, WELCOME_KEYS,  # noqa: E402
-                         find_key, lint, tts_from_synthesizer)
+                         find_key, gh_annotation, lint, tts_from_synthesizer)
 
 INDIC = {"hi", "kn", "ta", "te", "ml", "mr", "bn", "gu", "pa", "od", "or", "as", "ur"}
 LANG_NAME = {"hindi": "hi", "kannada": "kn", "tamil": "ta", "telugu": "te", "malayalam": "ml", "marathi": "mr",
@@ -367,6 +367,9 @@ def main() -> int:
     ap.add_argument("agent_json")
     ap.add_argument("--expect-minutes", type=float)
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--format", choices=["text", "github"], default="text",
+                    help="github: emit GitHub Actions annotations for CI")
+    ap.add_argument("--min-score", type=int, help="exit with status 1 if the config score is below this (for CI)")
     args = ap.parse_args()
     with open(args.agent_json, encoding="utf-8") as fh:
         data = json.load(fh)
@@ -374,8 +377,16 @@ def main() -> int:
     if args.json:
         print(json.dumps({"score": result.score, "summary": result.summary,
                           "findings": [asdict(f) for f in result.findings]}, ensure_ascii=False, indent=2, default=str))
+    elif args.format == "github":
+        for f in result.findings:
+            print(gh_annotation(f.severity, args.agent_json, f.rule,
+                                f"{f.field}: now {f.current!r}, suggested {f.suggested}. {f.why}"))
+        print(f"voice-doctor config score {result.score}/100 for {args.agent_json} ({len(result.findings)} findings)")
     else:
         print(render(result))
+    if args.min_score is not None and result.score < args.min_score:
+        print(f"Config score {result.score} is below the minimum {args.min_score}.", file=sys.stderr)
+        return 1
     return 0
 
 

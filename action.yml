@@ -1,0 +1,69 @@
+name: voice-doctor
+description: Catch what makes a phone voice agent sound robotic, in CI. Lints prompts and audits Bolna agent configs.
+author: dakshinsiva
+branding:
+  icon: phone-call
+  color: purple
+
+inputs:
+  agents:
+    description: Space-separated globs of Bolna agent JSON files (config and prompt are both checked), e.g. "agents/**/*.json"
+    required: false
+    default: ""
+  prompts:
+    description: Space-separated globs of system prompt files to lint, e.g. "prompts/*.md"
+    required: false
+    default: ""
+  tts:
+    description: Voice engine for standalone prompt files (sarvam-v4, sarvam-v3, sarvam-v2, cartesia, elevenlabs, generic). Agent files use their own synthesizer.
+    required: false
+    default: generic
+  min-config-score:
+    description: Fail if any agent's config score is below this (0 to report only)
+    required: false
+    default: "70"
+  min-speakability:
+    description: Fail if any prompt's speakability score is below this (0 to report only)
+    required: false
+    default: "80"
+
+runs:
+  using: composite
+  steps:
+    - name: voice-doctor checkup
+      shell: bash
+      env:
+        VD_AGENTS: ${{ inputs.agents }}
+        VD_PROMPTS: ${{ inputs.prompts }}
+        VD_TTS: ${{ inputs.tts }}
+        VD_MIN_CONFIG: ${{ inputs.min-config-score }}
+        VD_MIN_SPEAK: ${{ inputs.min-speakability }}
+        VD_SCRIPTS: ${{ github.action_path }}/skills/voice-doctor/scripts
+      run: |
+        set -u
+        shopt -s globstar nullglob
+        if [ -z "$VD_AGENTS$VD_PROMPTS" ]; then
+          echo "::error title=voice-doctor::Set 'agents' and/or 'prompts' to the files to check."
+          exit 1
+        fi
+        status=0
+        checked=0
+        for pattern in $VD_AGENTS; do
+          for f in $pattern; do
+            checked=$((checked + 1))
+            python3 "$VD_SCRIPTS/audit_config.py" "$f" --format github --min-score "$VD_MIN_CONFIG" || status=1
+            python3 "$VD_SCRIPTS/lint_prompt.py" --agent-json "$f" --format github --min-score "$VD_MIN_SPEAK" || status=1
+          done
+        done
+        for pattern in $VD_PROMPTS; do
+          for f in $pattern; do
+            checked=$((checked + 1))
+            python3 "$VD_SCRIPTS/lint_prompt.py" "$f" --tts "$VD_TTS" --format github --min-score "$VD_MIN_SPEAK" || status=1
+          done
+        done
+        if [ "$checked" -eq 0 ]; then
+          echo "::error title=voice-doctor::No files matched: agents='$VD_AGENTS' prompts='$VD_PROMPTS'"
+          exit 1
+        fi
+        echo "voice-doctor checked $checked file(s)."
+        exit $status

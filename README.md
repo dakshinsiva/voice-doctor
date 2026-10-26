@@ -100,6 +100,27 @@ The scripts are plain Python 3 with no dependencies. Claude reads their output, 
 
 **It only reads.** It never changes your agent or places calls. When you want fixes applied, it shows the exact changes and applies them only after you say yes, through your dashboard, Bolna's MCP server or the CLI.
 
+## Use it in CI
+
+Keep your agent configs and prompts in git? Fail the PR when a change makes the agent sound worse. Findings show up inline on the diff.
+
+```yaml
+# .github/workflows/voice-doctor.yml
+on: pull_request
+jobs:
+  voice-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dakshinsiva/voice-doctor@v0.3.0
+        with:
+          agents: agents/**/*.json   # Bolna agent exports: config + prompt
+          prompts: prompts/*.md      # standalone prompts (optional)
+          tts: sarvam-v4             # voice engine for standalone prompts
+          min-config-score: 80       # 0 = report only
+          min-speakability: 85
+```
+
 ## Getting your data from Bolna
 
 Whichever you have:

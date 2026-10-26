@@ -112,6 +112,10 @@ Speakability <before> → <after> · Config <before> → <expected after> · <N>
 
 Keep `report.md` under about 1,200 words: the top fixes with evidence, the config table, the test call, and what wasn't checked. Detail beyond that rarely gets read. Keep the chat reply under about 150 words: the top three fixes, the score change, and where the files are.
 
+## In CI
+
+If the user keeps agent configs or prompts in git and wants regressions caught automatically, point them to the GitHub Action in this repo's README (`uses: dakshinsiva/voice-doctor@<version>` with `agents` and `prompts` globs and minimum scores). Locally the same gate is `audit_config.py agent.json --min-score 80` and `lint_prompt.py ... --min-score 85` (exit status 1 below the minimum; `--format github` prints PR annotations).
+
 ## Applying changes
 
 voice-doctor reads; it doesn't change live agents on its own. If the user wants changes applied, show exactly what will change, get a clear yes, back up the current config, then apply with their tool of choice (dashboard, Bolna MCP `update_agent`, `bolna agents update`, or Bolna's `manage-agents` skill). `references/bolna.md` covers which fields PATCH can change and which need a full PUT.

@@ -408,6 +408,22 @@ def lint(prompt: str, welcome: str | None, known_vars: set[str] | None, tts: str
     return report
 
 
+# --- CI output ------------------------------------------------------------
+
+GH_LEVEL = {"high": "error", "medium": "warning", "low": "notice"}
+
+
+def gh_escape(text: str, prop: bool = False) -> str:
+    text = str(text).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    return text.replace(":", "%3A").replace(",", "%2C") if prop else text
+
+
+def gh_annotation(severity: str, file: str, rule: str, message: str, line: int | None = None) -> str:
+    """One GitHub Actions workflow command, shown inline on the PR diff."""
+    props = f"file={gh_escape(file, True)}" + (f",line={line}" if line else "") + f",title={gh_escape('voice-doctor ' + rule, True)}"
+    return f"::{GH_LEVEL[severity]} {props}::{gh_escape(message)}"
+
+
 # --- input helpers --------------------------------------------------------
 
 PROMPT_KEYS = ("system_prompt", "systemPrompt", "prompt")
@@ -482,6 +498,9 @@ def main() -> int:
     ap.add_argument("--tts", choices=sorted(TTS_ENGINES), help="voice engine (default: from --agent-json, else generic)")
     ap.add_argument("--vars", help="comma-separated variables you pass per call; flags any others used")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
+    ap.add_argument("--format", choices=["text", "github"], default="text",
+                    help="github: emit GitHub Actions annotations for CI")
+    ap.add_argument("--min-score", type=int, help="exit with status 1 if the score is below this (for CI)")
     args = ap.parse_args()
 
     prompt = welcome = None
@@ -512,8 +531,18 @@ def main() -> int:
     if args.json:
         print(json.dumps({"score": report.score, "stats": report.stats,
                           "findings": [asdict(f) for f in report.findings]}, ensure_ascii=False, indent=2))
+    elif args.format == "github":
+        src = args.prompt if args.prompt and os.path.isfile(args.prompt) else args.agent_json or "prompt"
+        line_ok = bool(args.prompt and os.path.isfile(args.prompt))  # prompt-file lines map to the file
+        for f in report.findings:
+            msg = f"{f.message} Fix: {f.fix}" + (f" ({f.where})" if f.where != "prompt" else "")
+            print(gh_annotation(f.severity, src, f.rule, msg, f.line if line_ok else None))
+        print(f"voice-doctor speakability {report.score}/100 for {src} ({len(report.findings)} findings)")
     else:
         print(render(report))
+    if args.min_score is not None and report.score < args.min_score:
+        print(f"Speakability {report.score} is below the minimum {args.min_score}.", file=sys.stderr)
+        return 1
     return 0
 
 

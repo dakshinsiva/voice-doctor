@@ -2,6 +2,7 @@
 
 import json
 import os
+import subprocess
 import sys
 import unittest
 
@@ -125,6 +126,29 @@ class AuditTests(unittest.TestCase):
     def test_expected_minutes_ignores_unrelated_durations(self):
         self.assertIsNone(expected_minutes("Ask them to arrive 10 minutes early."))
         self.assertEqual(expected_minutes("This call should take 2-3 minutes."), 3)
+
+
+SCRIPTS = os.path.join(ROOT, "skills", "voice-doctor", "scripts")
+
+
+def run_script(*args):
+    return subprocess.run([sys.executable, os.path.join(SCRIPTS, args[0]), *args[1:]], capture_output=True, text=True)
+
+
+class CiModeTests(unittest.TestCase):
+    def test_min_score_sets_exit_code(self):
+        agent = os.path.join(EX, "cod-confirmation", "agent.json")
+        self.assertEqual(run_script("audit_config.py", agent, "--min-score", "70").returncode, 1)
+        self.assertEqual(run_script("audit_config.py", agent, "--min-score", "0").returncode, 0)
+        self.assertEqual(run_script("lint_prompt.py", "--agent-json", agent, "--min-score", "90").returncode, 1)
+
+    def test_github_annotations(self):
+        agent = os.path.join(EX, "cod-confirmation", "agent.json")
+        out = run_script("audit_config.py", agent, "--format", "github").stdout
+        self.assertIn("::error file=", out)
+        self.assertIn("title=voice-doctor call-cut-off", out)
+        out = run_script("lint_prompt.py", "--agent-json", agent, "--format", "github").stdout
+        self.assertIn("title=voice-doctor romanised-indic", out)
 
 
 class ApplyChangesTests(unittest.TestCase):

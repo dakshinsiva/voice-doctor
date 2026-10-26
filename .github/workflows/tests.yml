@@ -23,3 +23,27 @@ jobs:
           python skills/voice-doctor/scripts/audit_config.py examples/cod-confirmation/agent.json
           python skills/voice-doctor/scripts/lint_prompt.py --agent-json examples/appointment-reminder/agent.json
           python skills/voice-doctor/scripts/call_stats.py examples/cod-confirmation/executions.json --agent-json examples/cod-confirmation/agent.json
+
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the action on the examples (they are broken on purpose)
+        id: vd
+        continue-on-error: true
+        uses: ./
+        with:
+          agents: examples/**/agent.json
+          min-config-score: "70"
+          min-speakability: "80"
+      - name: The action must flag the broken examples
+        if: steps.vd.outcome != 'failure'
+        run: |
+          echo "::error::voice-doctor passed agents that should have failed"
+          exit 1
+      - name: Report-only mode never fails the build
+        uses: ./
+        with:
+          agents: examples/**/agent.json
+          min-config-score: "0"
+          min-speakability: "0"
