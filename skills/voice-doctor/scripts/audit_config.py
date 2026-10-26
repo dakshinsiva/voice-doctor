@@ -362,32 +362,78 @@ def render(a: Audit) -> str:
     return "\n".join(out)
 
 
+def expand(paths: list[str]) -> list[str]:
+    """Files as given; folders become the agent JSON files inside them."""
+    out = []
+    for p in paths:
+        if os.path.isdir(p):
+            out += sorted(os.path.join(p, f) for f in os.listdir(p)
+                          if f.endswith(".json") and not f.endswith((".fixed.json", "config-changes.json")))
+        else:
+            out.append(p)
+    return out
+
+
+def fleet_row(path: str, data: dict, result: Audit) -> dict:
+    s = result.summary
+    highs = [f for f in result.findings if f.severity == "high"]
+    worst = sorted(result.findings, key=lambda f: {"high": 0, "medium": 1, "low": 2}[f.severity])
+    return {"file": path, "name": str(find_key(data, ("agent_name",)) or os.path.basename(path)),
+            "config": result.score, "speakability": s.get("speakability_score"),
+            "high": len(highs), "top": worst[0].rule if worst else ""}
+
+
+def render_fleet(rows: list[dict]) -> str:
+    rows = sorted(rows, key=lambda r: (r["config"] + (r["speakability"] if r["speakability"] is not None else 100)))
+    w = max(12, min(40, max(len(r["name"]) for r in rows)))
+    out = [f"{len(rows)} agents, worst first", "",
+           f"{'Agent':<{w}}  Config  Speak  High  Top issue", "-" * (w + 40)]
+    for r in rows:
+        sp = "-" if r["speakability"] is None else str(r["speakability"])
+        out.append(f"{r['name'][:w]:<{w}}  {r['config']:>6}  {sp:>5}  {r['high']:>4}  {r['top']}")
+    out += ["", "Run audit_config.py on a single file for the full findings."]
+    return "\n".join(out)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("agent_json")
+    ap.add_argument("agent_json", nargs="+", help="agent JSON file(s) or a folder of them (fleet view when more than one)")
     ap.add_argument("--expect-minutes", type=float)
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--format", choices=["text", "github"], default="text",
                     help="github: emit GitHub Actions annotations for CI")
-    ap.add_argument("--min-score", type=int, help="exit with status 1 if the config score is below this (for CI)")
+    ap.add_argument("--min-score", type=int, help="exit with status 1 if any config score is below this (for CI)")
     args = ap.parse_args()
-    with open(args.agent_json, encoding="utf-8") as fh:
-        data = json.load(fh)
-    result = audit(data, args.expect_minutes)
+
+    paths = expand(args.agent_json)
+    if not paths:
+        print("No agent JSON files found.", file=sys.stderr)
+        return 2
+    results = []
+    for path in paths:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        results.append((path, data, audit(data, args.expect_minutes)))
+
     if args.json:
-        print(json.dumps({"score": result.score, "summary": result.summary,
-                          "findings": [asdict(f) for f in result.findings]}, ensure_ascii=False, indent=2, default=str))
+        payload = [{"file": p, "score": r.score, "summary": r.summary, "findings": [asdict(f) for f in r.findings]}
+                   for p, _, r in results]
+        print(json.dumps(payload[0] if len(payload) == 1 else payload, ensure_ascii=False, indent=2, default=str))
     elif args.format == "github":
-        for f in result.findings:
-            print(gh_annotation(f.severity, args.agent_json, f.rule,
-                                f"{f.field}: now {f.current!r}, suggested {f.suggested}. {f.why}"))
-        print(f"voice-doctor config score {result.score}/100 for {args.agent_json} ({len(result.findings)} findings)")
+        for path, _, result in results:
+            for f in result.findings:
+                print(gh_annotation(f.severity, path, f.rule,
+                                    f"{f.field}: now {f.current!r}, suggested {f.suggested}. {f.why}"))
+            print(f"voice-doctor config score {result.score}/100 for {path} ({len(result.findings)} findings)")
+    elif len(results) == 1:
+        print(render(results[0][2]))
     else:
-        print(render(result))
-    if args.min_score is not None and result.score < args.min_score:
-        print(f"Config score {result.score} is below the minimum {args.min_score}.", file=sys.stderr)
-        return 1
-    return 0
+        print(render_fleet([fleet_row(p, d, r) for p, d, r in results]))
+
+    below = [(p, r.score) for p, _, r in results if args.min_score is not None and r.score < args.min_score]
+    for p, score in below:
+        print(f"Config score {score} is below the minimum {args.min_score}: {p}", file=sys.stderr)
+    return 1 if below else 0
 
 
 if __name__ == "__main__":

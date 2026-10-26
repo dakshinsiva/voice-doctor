@@ -141,6 +141,8 @@ Whichever you have:
 - **Bolna CLI**: `bolna agents view <id> --json`
 - **The bundled read-only script**: `export BOLNA_API_KEY=...` in your own terminal, then Claude runs `scripts/bolna_api.py`. The key is never printed.
 
+Many agents? `bolna_api.py export agents/` then `audit_config.py agents/` ranks every agent in the account, worst first.
+
 ## Works alongside Bolna's skills
 
 [Bolna's official skills](https://github.com/bolna-ai/skills) create agents, place calls and debug a single execution (`debug-bolna-calls`). voice-doctor is the checkup layer on top: it scores the whole agent, checks how prompts sound, and turns many calls into one ranked fix list. Use both.

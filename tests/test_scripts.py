@@ -174,6 +174,35 @@ class ScorecardTests(unittest.TestCase):
         self.assertTrue(badge(30).endswith("-red"))
 
 
+class FleetTests(unittest.TestCase):
+    def test_export_and_fleet_audit(self):
+        import tempfile
+        import bolna_api
+        cod, appt = load("cod-confirmation", "agent.json"), load("appointment-reminder", "agent.json")
+        flat = {aid: {**a["agent_config"], "agent_prompts": a["agent_prompts"]}
+                for aid, a in (("aaaa1111-x", cod), ("bbbb2222-y", appt))}
+
+        def fake_get(path, params=None):
+            if path == "/v2/agent/all":
+                return [{"id": k, "agent_name": v["agent_name"]} for k, v in flat.items()]
+            return flat[path.rsplit("/", 1)[-1]]
+
+        with tempfile.TemporaryDirectory() as d:
+            original, bolna_api.get = bolna_api.get, fake_get
+            try:
+                written = bolna_api.export(d)
+            finally:
+                bolna_api.get = original
+            self.assertEqual(len(written), 2)
+            self.assertTrue(any(os.path.basename(p).startswith("cod-confirmation-acme-bazaar-aaaa1111") for p in written))
+            out = run_script("audit_config.py", d)
+            self.assertEqual(out.returncode, 0)
+            self.assertIn("2 agents, worst first", out.stdout)
+            first_row = out.stdout.splitlines()[4]
+            self.assertTrue(first_row.startswith("COD Confirmation"))  # worst first
+            self.assertEqual(run_script("audit_config.py", d, "--min-score", "60").returncode, 1)
+
+
 class ApplyChangesTests(unittest.TestCase):
     def test_merge_scores_and_methods(self):
         agent = load("cod-confirmation", "agent.json")

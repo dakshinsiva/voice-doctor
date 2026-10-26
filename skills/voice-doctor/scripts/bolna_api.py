@@ -5,6 +5,7 @@
   bolna_api.py agent AGENT_ID                 one agent's full config
   bolna_api.py executions AGENT_ID [--days 7] [--max 100] [--status completed]
   bolna_api.py execution EXECUTION_ID         one call, with transcript and latency_data
+  bolna_api.py export DIR                     every agent's full config, one JSON file each
 
 Prints JSON to stdout; redirect it to a file. Only GET requests: nothing here can
 change an agent or place a call.
@@ -18,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -90,6 +92,31 @@ def executions(agent_id: str, days: int, limit: int, status: str | None) -> list
     return out[:limit]
 
 
+def list_agents() -> list:
+    data = get("/v2/agent/all")
+    rows = data if isinstance(data, list) else data.get("data", [])
+    return [r for r in rows if isinstance(r, dict)]
+
+
+def export(directory: str) -> list:
+    """Write each agent's full config to DIR/<name>-<id8>.json, for a fleet audit."""
+    os.makedirs(directory, exist_ok=True)
+    written = []
+    for row in list_agents():
+        agent_id = row.get("id") or row.get("agent_id")
+        if not agent_id:
+            continue
+        full = get(f"/v2/agent/{agent_id}")
+        name = str(full.get("agent_name") or row.get("agent_name") or "agent")
+        slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:40] or "agent"
+        path = os.path.join(directory, f"{slug}-{str(agent_id)[:8]}.json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(full, fh, ensure_ascii=False, indent=2)
+            fh.write("\n")
+        written.append(path)
+    return written
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -103,13 +130,16 @@ def main() -> int:
     e.add_argument("--status", help="e.g. completed")
     x = sub.add_parser("execution")
     x.add_argument("execution_id")
+    d = sub.add_parser("export")
+    d.add_argument("dir")
     args = ap.parse_args()
 
     if args.cmd == "agents":
-        data = get("/v2/agent/all")
-        rows = data if isinstance(data, list) else data.get("data", data)
-        result = [{"id": r.get("id") or r.get("agent_id"), "name": r.get("agent_name")} for r in rows] \
-            if isinstance(rows, list) else rows
+        result = [{"id": r.get("id") or r.get("agent_id"), "name": r.get("agent_name")} for r in list_agents()]
+    elif args.cmd == "export":
+        written = export(args.dir)
+        result = {"exported": len(written), "files": written,
+                  "next": f"python3 audit_config.py {args.dir}"}
     elif args.cmd == "agent":
         result = get(f"/v2/agent/{args.agent_id}")
     elif args.cmd == "executions":

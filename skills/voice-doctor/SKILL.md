@@ -32,6 +32,13 @@ python3 scripts/bolna_api.py agent <agent_id> > agent.json
 python3 scripts/bolna_api.py executions <agent_id> --days 7 --max 50 > executions.json
 ```
 
+For a whole account ("check all my agents"), export every agent and get a ranked table, worst first, then go deep on the worst one or two:
+
+```bash
+python3 scripts/bolna_api.py export agents/
+python3 scripts/audit_config.py agents/
+```
+
 ## 2. Run the checks
 
 ```bash
