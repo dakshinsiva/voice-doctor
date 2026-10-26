@@ -20,6 +20,8 @@ claude plugin marketplace add dakshinsiva/voice-doctor && claude plugin install 
 
 Then, in Claude Code: *"my Bolna agent sounds robotic, here's the export: agent.json"*
 
+<p align="center"><img src="docs/scorecard-example.png" alt="voice-doctor scorecard: speakability 27 to 90, config 32 to 98" width="720"></p>
+
 ## What robotic sounds like
 
 What callers heard from a real-shaped COD confirmation agent:
@@ -99,6 +101,16 @@ Three checks, used depending on what you give it:
 The scripts are plain Python 3 with no dependencies. Claude reads their output, reads your prompt and worst calls itself, and writes the fixes.
 
 **It only reads.** It never changes your agent or places calls. When you want fixes applied, it shows the exact changes and applies them only after you say yes, through your dashboard, Bolna's MCP server or the CLI.
+
+## Share your checkup
+
+After a checkup, voice-doctor can make a scorecard like the one above (1200×630, the size Slack, X and LinkedIn preview) and a badge for your README:
+
+```bash
+python3 skills/voice-doctor/scripts/scorecard.py agent.json --after agent.fixed.json --badge
+```
+
+![voice-doctor score](https://img.shields.io/badge/voice--doctor-94%2F100-brightgreen)
 
 ## Use it in CI
 

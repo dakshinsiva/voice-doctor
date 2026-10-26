@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.join(ROOT, "skills", "voice-doctor", "scripts"))
 
 from apply_changes import apply, method_for  # noqa: E402
 from audit_config import audit, expected_minutes  # noqa: E402
+from scorecard import badge, checkup, svg  # noqa: E402
 from call_stats import analyse, load_executions  # noqa: E402
 from lint_prompt import lint  # noqa: E402
 
@@ -149,6 +150,28 @@ class CiModeTests(unittest.TestCase):
         self.assertIn("title=voice-doctor call-cut-off", out)
         out = run_script("lint_prompt.py", "--agent-json", agent, "--format", "github").stdout
         self.assertIn("title=voice-doctor romanised-indic", out)
+
+
+class ScorecardTests(unittest.TestCase):
+    def test_before_after_card(self):
+        import xml.etree.ElementTree as ET
+        agent = load("cod-confirmation", "agent.json")
+        merged, _ = apply(agent, load("cod-confirmation", "config-changes.json"))
+        before, after = checkup(agent), checkup(merged)
+        card = svg(before, after)
+        ET.fromstring(card)  # well-formed
+        self.assertIn(f">{before['config']}<", card)
+        self.assertIn(f">{after['config']}<", card)
+        self.assertIn("Calls cut off mid-conversation", card)  # a fixed problem, in plain words
+        self.assertIn("Fixed", card)
+
+    def test_single_agent_card_and_badge(self):
+        import xml.etree.ElementTree as ET
+        card = svg(checkup(load("appointment-reminder", "agent.json")), None)
+        ET.fromstring(card)
+        self.assertIn("Top problems", card)
+        self.assertTrue(badge(94).endswith("94%2F100-brightgreen"))
+        self.assertTrue(badge(30).endswith("-red"))
 
 
 class ApplyChangesTests(unittest.TestCase):

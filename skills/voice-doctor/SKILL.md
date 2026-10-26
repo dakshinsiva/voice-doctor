@@ -110,6 +110,8 @@ Speakability <before> → <after> · Config <before> → <expected after> · <N>
 <What there was no data for, and assumptions made.>
 ```
 
+Offer a shareable scorecard once there's an after state: `python3 scripts/scorecard.py agent.json --after agent.fixed.json -o scorecard.svg --badge` writes a 1200×630 SVG with the before/after scores and the top problems fixed in plain words, and prints a README badge. Builders like posting these, so mention it in one line.
+
 Keep `report.md` under about 1,200 words: the top fixes with evidence, the config table, the test call, and what wasn't checked. Detail beyond that rarely gets read. Keep the chat reply under about 150 words: the top three fixes, the score change, and where the files are.
 
 ## In CI
