@@ -70,7 +70,9 @@ Read `references/voice-prompt-rules.md` before rewriting, and `references/provid
 - **Config changes** as a table (field, now, suggested, why) plus a JSON snippet of just the changed fields in Bolna's structure. When switching the transcriber provider, carry `endpointing` over: Bolna applies it to every transcriber, and leaving it out falls back to a low default.
 - **Indian languages**: for a Sarvam voice, write Hindi in Devanagari with English words left in Latin script, in everyday spoken style, and use the persona's verb gender consistently. For callers speaking different languages, fix it in config (Bolna `multilingual_config`), not with prompt rules.
 
-Then re-run `lint_prompt.py` on the rewrite and report the score before and after. Aim for 90 or above; explain any finding left on purpose.
+Then measure the result instead of estimating it:
+- Re-run `lint_prompt.py` on the rewritten prompt and welcome. Aim for 90 or above; explain any finding left on purpose.
+- Put the config changes, rewritten prompt and welcome into `config-changes.json` (same structure as the agent; `null` removes a field) and run `python3 scripts/apply_changes.py agent.json config-changes.json -o agent.fixed.json`. It merges them without touching the original, prints the config and speakability scores before and after, flags any new finding the changes introduce, and marks each field PATCH or PUT. Quote those numbers in the report; don't hand-merge a scratch copy.
 
 ## 5. Deliver
 
@@ -78,6 +80,7 @@ Write the results into a `voice-doctor/` folder next to the user's files (or the
 - `report.md`: the checkup report (template below)
 - `system_prompt.md` and `welcome.txt`: the rewrites
 - `config-changes.json`: only the changed fields
+- `agent.fixed.json`: the merged agent from `apply_changes.py`, ready to PUT after a backup
 
 Report template:
 

@@ -8,6 +8,7 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "skills", "voice-doctor", "scripts"))
 
+from apply_changes import apply, method_for  # noqa: E402
 from audit_config import audit, expected_minutes  # noqa: E402
 from call_stats import analyse, load_executions  # noqa: E402
 from lint_prompt import lint  # noqa: E402
@@ -124,6 +125,33 @@ class AuditTests(unittest.TestCase):
     def test_expected_minutes_ignores_unrelated_durations(self):
         self.assertIsNone(expected_minutes("Ask them to arrive 10 minutes early."))
         self.assertEqual(expected_minutes("This call should take 2-3 minutes."), 3)
+
+
+class ApplyChangesTests(unittest.TestCase):
+    def test_merge_scores_and_methods(self):
+        agent = load("cod-confirmation", "agent.json")
+        merged, changed = apply(agent, load("cod-confirmation", "config-changes.json"))
+        tc = merged["agent_config"]["tasks"][0]["task_config"]
+        self.assertEqual(tc["call_terminate"], 240)
+        self.assertEqual(tc["hangup_after_silence"], 15)  # untouched siblings survive
+        self.assertEqual(merged["agent_config"]["tasks"][0]["tools_config"]["transcriber"]["provider"], "deepgram")
+        self.assertGreater(audit(merged, None).score, audit(agent, None).score + 40)
+        methods = {c["field"].split(".")[-1]: c["method"] for c in changed}
+        self.assertEqual(methods["buffer_size"], "PATCH")
+        self.assertEqual(methods["call_terminate"], "PUT")
+        self.assertEqual(agent["agent_config"]["tasks"][0]["task_config"]["call_terminate"], 90)  # input untouched
+
+    def test_flat_agent_wrapped_changes_and_null_removes(self):
+        agent = load("cod-confirmation", "agent.json")
+        flat = {**agent["agent_config"], "agent_prompts": agent["agent_prompts"]}
+        changes = {"agent_config": {"agent_welcome_message": "नमस्ते, क्या मेरी बात {{customer_name}} जी से हो रही है?",
+                                    "webhook_url": None}}
+        merged, changed = apply(flat, changes)
+        self.assertNotIn("agent_config", merged)
+        self.assertNotIn("webhook_url", merged)
+        self.assertTrue(merged["agent_welcome_message"].startswith("नमस्ते"))
+        self.assertTrue(all(c["method"] == "PATCH" for c in changed))
+        self.assertEqual(method_for("agent_prompts.task_1.system_prompt"), "PATCH")
 
 
 class CallStatsTests(unittest.TestCase):

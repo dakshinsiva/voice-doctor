@@ -1,0 +1,23 @@
+{
+  "agent_config": {
+    "calling_guardrails": {"call_start_hour": 9, "call_end_hour": 20},
+    "tasks": [
+      {
+        "tools_config": {
+          "llm_agent": {"llm_config": {"reasoning_effort": "low", "max_tokens": 150}},
+          "synthesizer": {"provider_config": {"voice": "ritu_hi_customer", "voice_id": "ritu_hi_customer"}, "buffer_size": 150},
+          "transcriber": {"endpointing": 400}
+        },
+        "task_config": {
+          "call_terminate": 240,
+          "incremental_delay": 400,
+          "number_of_words_for_interruption": 2,
+          "voicemail": true,
+          "hangup_after_silence": 15,
+          "check_if_user_online": true,
+          "trigger_user_online_message_after": 8
+        }
+      }
+    ]
+  }
+}
