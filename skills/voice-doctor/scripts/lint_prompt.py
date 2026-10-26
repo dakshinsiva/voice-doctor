@@ -18,6 +18,9 @@ Usage:
   lint_prompt.py PROMPT_FILE [--welcome TEXT_OR_FILE] [--tts ENGINE] [--vars a,b] [--json]
   lint_prompt.py --agent-json agent.json [--vars a,b] [--json]
 
+--agent-json takes a Bolna agent, a Vapi assistant, or a Retell agent plus LLM
+(one file with "agent" and "retell_llm" keys, or the LLM object alone).
+
 PROMPT_FILE may be "-" for stdin. Standard library only.
 """
 
@@ -293,7 +296,7 @@ def check_spoken(report: Report, text: str, where: str, base_line: int | None, e
 
 
 def lint(prompt: str, welcome: str | None, known_vars: set[str] | None, tts: str = "generic",
-         multilingual_enabled: bool | None = None) -> Report:
+         multilingual_enabled: bool | None = None, platform: str = "bolna") -> Report:
     engine = TTS_ENGINES.get(tts, TTS_ENGINES["generic"])
     report = Report()
     low = prompt.lower()
@@ -334,7 +337,7 @@ def lint(prompt: str, welcome: str | None, known_vars: set[str] | None, tts: str
                    "When the model switches language, the voice mispronounces it and speech-to-text mishears it.",
                    "On Bolna, turn on multilingual_config with a transcriber, synthesizer and prompt per language, and take "
                    "switching rules out of the prompt. Elsewhere, confirm the STT and TTS are multilingual before relying on a prompt rule.")
-    elif switching and multilingual_enabled:
+    elif switching and multilingual_enabled and platform == "bolna":
         report.add("switch-rule-with-multilingual", "medium",
                    "Prompt has language-switching instructions while multilingual_config is on. Bolna says to leave switching to the config.",
                    "Remove the switching instructions from the prompt.", line_of(prompt, switching.start()))
@@ -461,6 +464,61 @@ def tts_from_synthesizer(synth: dict | None) -> str:
     return "generic"
 
 
+def detect_platform(data) -> str:
+    """bolna, vapi or retell, from the shape of an exported agent."""
+    if not isinstance(data, dict):
+        return "unknown"
+    agent = data.get("agent") if isinstance(data.get("agent"), dict) else {}
+    if "retell_llm" in data or "response_engine" in data or "general_prompt" in data or "voice_id" in agent:
+        return "retell"
+    model = data.get("model") if isinstance(data.get("model"), dict) else {}
+    voice = data.get("voice") if isinstance(data.get("voice"), dict) else {}
+    if "firstMessage" in data or "messages" in model or "startSpeakingPlan" in data or "voiceId" in voice:
+        return "vapi"
+    if "agent_config" in data or "agent_prompts" in data or find_key(data, ("tasks",)):
+        return "bolna"
+    return "unknown"
+
+
+def retell_parts(data: dict) -> tuple[dict, dict]:
+    """(agent, retell_llm) from a combined {"agent", "retell_llm"} file or either object alone."""
+    agent = data["agent"] if isinstance(data.get("agent"), dict) else data
+    llm = data.get("retell_llm") or data.get("llm") or (data if "general_prompt" in data else {})
+    return agent, llm if isinstance(llm, dict) else {}
+
+
+def extract_agent_text(data) -> dict:
+    """Prompt, welcome message, voice engine and multilingual flag from any supported platform."""
+    platform = detect_platform(data)
+    out = {"platform": platform, "prompt": None, "welcome": None, "tts": "generic", "multilingual": False}
+    if platform == "vapi":
+        msgs = (data.get("model") or {}).get("messages") or []
+        system = [m.get("content") for m in msgs if isinstance(m, dict) and m.get("role") == "system"]
+        out["prompt"] = "\n\n".join(c for c in system if isinstance(c, str)) or None
+        out["welcome"] = data.get("firstMessage") if isinstance(data.get("firstMessage"), str) else None
+        provider = str((data.get("voice") or {}).get("provider", "")).lower()
+        out["tts"] = {"cartesia": "cartesia", "11labs": "elevenlabs", "elevenlabs": "elevenlabs"}.get(provider, "generic")
+        out["multilingual"] = str((data.get("transcriber") or {}).get("language", "")).lower() == "multi"
+    elif platform == "retell":
+        agent, llm = retell_parts(data)
+        prompts = [llm.get("general_prompt")] + [st.get("state_prompt") for st in llm.get("states") or [] if isinstance(st, dict)]
+        out["prompt"] = "\n\n".join(p for p in prompts if isinstance(p, str) and p) or None
+        out["welcome"] = llm.get("begin_message") if isinstance(llm.get("begin_message"), str) else None
+        vid, vmodel = str(agent.get("voice_id", "")).lower(), str(agent.get("voice_model") or "").lower()
+        out["tts"] = ("elevenlabs" if vid.startswith(("11labs", "elevenlabs")) or "eleven" in vmodel
+                      else "cartesia" if vid.startswith("cartesia") or "sonic" in vmodel else "generic")
+        lang = agent.get("language")
+        out["multilingual"] = isinstance(lang, list) and len(lang) > 1
+    else:
+        prompt, welcome = find_key(data, PROMPT_KEYS), find_key(data, WELCOME_KEYS)
+        out["prompt"] = prompt if isinstance(prompt, str) else None
+        out["welcome"] = welcome if isinstance(welcome, str) else None
+        out["tts"] = tts_from_synthesizer(find_key(data, ("synthesizer",)))
+        ml = find_key(data, ("multilingual_config",))
+        out["multilingual"] = bool(isinstance(ml, dict) and ml.get("enabled"))
+    return out
+
+
 def read_text(arg: str) -> str:
     if arg == "-":
         return sys.stdin.read()
@@ -504,15 +562,13 @@ def main() -> int:
     args = ap.parse_args()
 
     prompt = welcome = None
-    tts, multilingual = "generic", None
+    tts, multilingual, platform = "generic", None, "bolna"
     if args.agent_json:
         with open(args.agent_json, encoding="utf-8") as fh:
             data = json.load(fh)
-        prompt = find_key(data, PROMPT_KEYS)
-        welcome = find_key(data, WELCOME_KEYS)
-        tts = tts_from_synthesizer(find_key(data, ("synthesizer",)))
-        ml = find_key(data, ("multilingual_config",))
-        multilingual = bool(isinstance(ml, dict) and ml.get("enabled"))
+        parts = extract_agent_text(data)
+        prompt, welcome, tts, multilingual = parts["prompt"], parts["welcome"], parts["tts"], parts["multilingual"]
+        platform = parts["platform"]
         if not isinstance(prompt, str):
             print("No system prompt found in the JSON.", file=sys.stderr)
             return 2
@@ -526,7 +582,7 @@ def main() -> int:
         ap.error("give a prompt file or --agent-json")
 
     known = {v.strip() for v in args.vars.split(",") if v.strip()} if args.vars else None
-    report = lint(prompt, welcome if isinstance(welcome, str) else None, known, tts, multilingual)
+    report = lint(prompt, welcome if isinstance(welcome, str) else None, known, tts, multilingual, platform)
 
     if args.json:
         print(json.dumps({"score": report.score, "stats": report.stats,

@@ -27,7 +27,9 @@ from dataclasses import asdict, dataclass, field
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lint_prompt import (INDIAN_LANGUAGES, PROMPT_KEYS, SEVERITY_COST, WELCOME_KEYS,  # noqa: E402
-                         find_key, gh_annotation, lint, tts_from_synthesizer)
+                         detect_platform, extract_agent_text, find_key, gh_annotation, lint, retell_parts,
+                         tts_from_synthesizer)
+from platforms import audit_retell, audit_vapi  # noqa: E402
 
 INDIC = {"hi", "kn", "ta", "te", "ml", "mr", "bn", "gu", "pa", "od", "or", "as", "ur"}
 LANG_NAME = {"hindi": "hi", "kannada": "kn", "tamil": "ta", "telugu": "te", "malayalam": "ml", "marathi": "mr",
@@ -98,7 +100,11 @@ def conversation_task(data) -> dict:
 
 
 def audit(data: dict, expect_min: float | None) -> Audit:
+    platform = detect_platform(data)
+    if platform in ("vapi", "retell"):
+        return audit_other(data, platform, expect_min)
     a = Audit()
+    a.summary["platform"] = "bolna"
     task = conversation_task(data)
     tools = task.get("tools_config") or {}
     tc = task.get("task_config") or {}
@@ -345,10 +351,31 @@ def audit(data: dict, expect_min: float | None) -> Audit:
     return a
 
 
+def audit_other(data: dict, platform: str, expect_min: float | None) -> Audit:
+    """Vapi and Retell: platform checks from platforms.py, plus the prompt linter."""
+    a = Audit()
+    parts = extract_agent_text(data)
+    prompt, welcome = parts["prompt"] or "", parts["welcome"] or ""
+    exp = expect_min or expected_minutes(prompt, welcome)
+    if platform == "vapi":
+        audit_vapi(a, data, prompt, exp)
+    else:
+        agent, llm = retell_parts(data)
+        audit_retell(a, agent, llm, prompt, exp)
+    a.summary["expected_minutes"] = exp
+    if prompt:
+        r = lint(prompt, welcome or None, None, parts["tts"], parts["multilingual"], platform)
+        a.summary["speakability_score"] = r.score
+        a.summary["speakability_findings"] = len(r.findings)
+        a.summary["top_prompt_issues"] = [f.rule for f in sorted(
+            r.findings, key=lambda f: {"high": 0, "medium": 1, "low": 2}[f.severity])][:6]
+    return a
+
+
 def render(a: Audit) -> str:
     order = {"high": 0, "medium": 1, "low": 2}
     s = a.summary
-    out = [f"Config score: {a.score}/100  ({len(a.findings)} findings)",
+    out = [f"Config score: {a.score}/100  ({len(a.findings)} findings, {s.get('platform', 'bolna')})",
            f"Stack: STT {s['transcriber']} | LLM {s['llm']} | TTS {s['synthesizer']} | telephony {s['telephony']}"
            f" | multilingual {'on' if s['multilingual'] else 'off'}"]
     if "speakability_score" in s:
@@ -378,7 +405,7 @@ def fleet_row(path: str, data: dict, result: Audit) -> dict:
     s = result.summary
     highs = [f for f in result.findings if f.severity == "high"]
     worst = sorted(result.findings, key=lambda f: {"high": 0, "medium": 1, "low": 2}[f.severity])
-    return {"file": path, "name": str(find_key(data, ("agent_name",)) or os.path.basename(path)),
+    return {"file": path, "name": str(find_key(data, ("agent_name",)) or data.get("name") or os.path.basename(path)),
             "config": result.score, "speakability": s.get("speakability_score"),
             "high": len(highs), "top": worst[0].rule if worst else ""}
 

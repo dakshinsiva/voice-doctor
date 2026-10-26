@@ -1,0 +1,71 @@
+{
+  "_note": "Synthetic example for voice-doctor tests. Field names follow Retell's get-agent and get-retell-llm schemas (checked 2026-10-26); values are made up. Combine the two API objects under \"agent\" and \"retell_llm\" like this.",
+  "agent": {
+    "agent_id": "agent_000000000000000000000001",
+    "version": 3,
+    "is_published": true,
+    "agent_name": "EMI reminder - Acme Finance (Retell)",
+    "response_engine": {
+      "type": "retell-llm",
+      "llm_id": "llm_000000000000000000000001",
+      "version": 3
+    },
+    "voice_id": "11labs-Demo",
+    "voice_model": "eleven_flash_v2_5",
+    "fallback_voice_ids": [
+      "minimax-Cimo"
+    ],
+    "voice_speed": 1.0,
+    "language": [
+      "hi-IN",
+      "kn-IN"
+    ],
+    "responsiveness": 0.8,
+    "interruption_sensitivity": 0.2,
+    "enable_backchannel": true,
+    "backchannel_frequency": 0.6,
+    "reminder_trigger_ms": 8000,
+    "reminder_max_count": 0,
+    "max_call_duration_ms": 90000,
+    "begin_message_delay_ms": 500,
+    "ambient_sound": null,
+    "stt_mode": "custom",
+    "custom_stt_config": {
+      "provider": "deepgram",
+      "endpointing_ms": 800
+    },
+    "denoising_mode": "noise-cancellation",
+    "boosted_keywords": [
+      "EMI",
+      "Acme Finance"
+    ],
+    "pronunciation_dictionary": null,
+    "voicemail_option": null,
+    "webhook_events": [
+      "call_started",
+      "call_ended",
+      "call_analyzed"
+    ],
+    "last_modification_timestamp": 1761400000000
+  },
+  "retell_llm": {
+    "llm_id": "llm_000000000000000000000001",
+    "version": 3,
+    "is_published": true,
+    "start_speaker": "agent",
+    "begin_message": "Namaste! Main Priya bol rahi hoon Acme Finance se, aapki EMI ke baare mein. Kya aap abhi baat kar sakte hain?",
+    "general_prompt": "You are Priya from Acme Finance, calling borrowers about their EMI of Rs. {{emi_amount}} due on {{due_date}}.\nBorrowers speak Hindi, Kannada or Telugu. Reply in their language.\nRemind them of the due date, ask when they will pay, and connect them to customer care if they have a problem.\nThis call should take 2-3 minutes.",
+    "general_tools": [
+      {
+        "type": "end_call",
+        "name": "end_call",
+        "description": "End the call when done."
+      }
+    ],
+    "states": null,
+    "starting_state": null,
+    "last_modification_timestamp": 1761400000000,
+    "model": "gpt-4.1",
+    "model_temperature": 0.4
+  }
+}

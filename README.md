@@ -5,7 +5,7 @@
 **Your voice agent sounds robotic. voice-doctor finds out why and fixes it.**
 
 A Claude Code skill that listens to your phone agent the way a caller does (prompt, config and real calls), finds what makes it sound robotic, slow or rude, then rewrites the prompt, fixes the config and tells you exactly what to test.
-Built for **Bolna + Sarvam**, Indian languages first. Works with any voice stack.
+Built for **Bolna + Sarvam**, Indian languages first. Config checks for **Vapi** and **Retell** too.
 
 [![tests](https://github.com/dakshinsiva/voice-doctor/actions/workflows/tests.yml/badge.svg)](https://github.com/dakshinsiva/voice-doctor/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -47,6 +47,7 @@ Found in testing, on synthetic agents, public Bolna agents from GitHub and a liv
 - 🎭 **A voice that doesn't exist.** `anushka` is a v2/v3 name; it isn't a `bulbul:v4-flash` voice. ElevenLabs Flash on a Kannada agent. Cartesia with no language on a Tamil agent.
 - 🔗 **Things nobody can use by ear.** Order IDs, `#` signs, links, emails, `**bold**` and "18/10" read aloud.
 - 🧩 **Template leftovers.** A literal `***REMOVED***` in the persona line and a `your-domain.com` webhook in an open-source agent people copy.
+- 🪤 **Platform traps.** Retell keeps a silent call open for 10 minutes by default and has no voicemail detection on agents created through the API. Vapi's voicemail detection is off by default, and fields like `silenceTimeoutSeconds` aren't in its current schema. Neither platform covers every Indian language: Retell has no Telugu, Malayalam, Bengali, Gujarati or Punjabi.
 - 🐢 **Slow turns, measured.** LLM first token p50 1,480 ms / p95 1,910 ms from `reasoning_effort: medium`, plus 1,000 ms of configured waits, across every call in `latency_data`.
 
 ## What you get
@@ -95,7 +96,7 @@ Three checks, used depending on what you give it:
 | Check | Input | What it looks at |
 |---|---|---|
 | Prompt | system prompt, welcome, per-call variables | markdown, links, numbers in the form your TTS wants, script and register for Indian languages, turn length, missing situations |
-| Config | Bolna agent JSON | endpointing, interruptions, silence and hang-up timers, call length cap, voice and model language support, reasoning effort, TTS buffer, voicemail, calling hours, outcome capture |
+| Config | Bolna agent JSON, Vapi assistant, or Retell agent + LLM | endpointing, interruptions, silence and hang-up timers, call length cap, voice and model language support, reasoning effort, TTS buffer, voicemail, calling hours, outcome capture |
 | Calls | Bolna executions | latency p50/p95 per component, interruptions, monologues, "hello? are you there?", loops, unspeakable output, calls hitting the cap, worst calls to listen to |
 
 The scripts are plain Python 3 with no dependencies. Claude reads their output, reads your prompt and worst calls itself, and writes the fixes.
@@ -165,14 +166,14 @@ Other ways to install: copy `skills/voice-doctor` into `~/.claude/skills/`.
 
 ## How it knows
 
-Rules come from Bolna's docs and open-source engine, the Sarvam, Cartesia, Deepgram and ElevenLabs docs (checked 17 October 2026), and research on code-mixed Hindi and spoken Kannada. Where vendor docs contradict each other (they do, on number handling), the skill says so and makes it part of the test call instead of guessing. Sources are in [`references/`](skills/voice-doctor/references). The examples in [`examples/`](examples) are synthetic: Bolna's field names, made-up values. Scores are heuristics for tracking progress, not a quality guarantee.
+Rules come from Bolna's docs and open-source engine, Vapi's and Retell's API specs (checked 26 October 2026), the Sarvam, Cartesia, Deepgram and ElevenLabs docs (checked 17 October 2026), and research on code-mixed Hindi and spoken Kannada. Where vendor docs contradict each other (they do, on number handling), the skill says so and makes it part of the test call instead of guessing. Sources are in [`references/`](skills/voice-doctor/references). The examples in [`examples/`](examples) are synthetic: Bolna's field names, made-up values. Scores are heuristics for tracking progress, not a quality guarantee.
 
 ## Contributing
 
 Most wanted:
 - Real cases where a rule is wrong. Open an issue with the redacted prompt or transcript.
 - Tamil, Telugu, Bengali and Marathi phrasing rules from native speakers.
-- Config checks for Vapi, Retell, LiveKit and Pipecat.
+- Config checks for LiveKit and Pipecat (Vapi and Retell are in).
 
 Run `python3 -m unittest discover tests` before a PR, and add a test for any new check.
 

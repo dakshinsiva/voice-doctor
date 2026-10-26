@@ -1,0 +1,94 @@
+{
+  "_note": "Synthetic example for voice-doctor tests. Field names follow Vapi's assistant schema (checked 2026-10-26); values are made up.",
+  "id": "a1b2c3d4-0000-4000-8000-000000000001",
+  "orgId": "a1b2c3d4-0000-4000-8000-0000000000aa",
+  "createdAt": "2026-10-01T10:00:00.000Z",
+  "updatedAt": "2026-10-20T10:00:00.000Z",
+  "name": "EMI reminder - Acme Finance",
+  "firstMessage": "Namaste! Main Priya bol rahi hoon Acme Finance se. Aapki EMI ke baare mein call kiya hai, jo ki ₹12,500 hai aur 05/11 ko due hai. Kya aap abhi baat kar sakte hain? Aur kya aap payment kar chuke hain?",
+  "firstMessageMode": "assistant-speaks-first",
+  "model": {
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "temperature": 0.3,
+    "maxTokens": 500,
+    "messages": [
+      {
+        "role": "system",
+        "content": "## Role\nYou are Priya, a collections executive for **Acme Finance**. You call borrowers to remind them about their EMI.\n\n## Details\n- Borrower: {{customer_name}}\n- EMI amount: ₹{{emi_amount}}\n- Due date: {{due_date}}\n\n## Steps\n1. Remind them of the EMI and due date.\n2. Ask when they will pay. If they want to pay now, tell them to visit https://pay.acmefinance.example.\n3. If they have a problem, transfer them to a human agent.\n\n## Language\nBorrowers may speak Hindi or Marathi. Always reply in the language the borrower uses.\n\nThe call takes about 3 minutes. Explain all repayment options in detail."
+      }
+    ],
+    "tools": [
+      {
+        "type": "endCall"
+      }
+    ],
+    "reasoningEffort": "medium"
+  },
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-3",
+    "language": "hi",
+    "endpointing": 300
+  },
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "demo-voice-id",
+    "model": "eleven_flash_v2_5",
+    "language": "mr"
+  },
+  "startSpeakingPlan": {
+    "waitSeconds": 0.4,
+    "smartEndpointingPlan": {
+      "provider": "livekit"
+    },
+    "transcriptionEndpointingPlan": {
+      "onPunctuationSeconds": 0.1,
+      "onNoPunctuationSeconds": 1.5,
+      "onNumberSeconds": 0.3
+    }
+  },
+  "stopSpeakingPlan": {
+    "numWords": 0,
+    "voiceSeconds": 0.2,
+    "backoffSeconds": 1
+  },
+  "hooks": [
+    {
+      "on": "customer.speech.timeout",
+      "options": {
+        "timeoutSeconds": 8,
+        "triggerMaxCount": 2,
+        "triggerResetMode": "onUserSpeech"
+      },
+      "do": [
+        {
+          "type": "say",
+          "exact": [
+            "Hello, are you still there?"
+          ]
+        }
+      ]
+    }
+  ],
+  "silenceTimeoutSeconds": 30,
+  "maxDurationSeconds": 120,
+  "voicemailDetection": "off",
+  "voicemailMessage": "Namaste, Acme Finance se call tha. Kripya 1800-000-0000 par call karein.",
+  "endCallMessage": "Dhanyavaad, aapka din shubh ho.",
+  "endCallPhrases": [
+    "dhanyavaad, aapka din shubh ho"
+  ],
+  "backgroundSound": "off",
+  "backgroundSpeechDenoisingPlan": {
+    "smartDenoisingPlan": {
+      "enabled": true
+    }
+  },
+  "serverMessages": [
+    "end-of-call-report",
+    "status-update",
+    "tool-calls",
+    "hang"
+  ]
+}

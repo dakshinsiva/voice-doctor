@@ -25,7 +25,7 @@ from xml.sax.saxutils import escape
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from audit_config import audit  # noqa: E402
-from lint_prompt import PROMPT_KEYS, WELCOME_KEYS, find_key, lint, tts_from_synthesizer  # noqa: E402
+from lint_prompt import extract_agent_text, find_key, lint  # noqa: E402
 
 # What each finding means to a caller, for people who never read the report.
 RULE_LABELS = {
@@ -87,17 +87,13 @@ def checkup(agent: dict) -> dict:
     a = audit(agent, None)
     findings = [(f.severity, f.rule) for f in a.findings]
     out = {"config": a.score, "speakability": None}
-    prompt = find_key(agent, PROMPT_KEYS)
-    if isinstance(prompt, str):
-        welcome = find_key(agent, WELCOME_KEYS)
-        ml = find_key(agent, ("multilingual_config",))
-        r = lint(prompt, welcome if isinstance(welcome, str) else None, None,
-                 tts_from_synthesizer(find_key(agent, ("synthesizer",))),
-                 bool(isinstance(ml, dict) and ml.get("enabled")))
+    parts = extract_agent_text(agent)
+    if isinstance(parts["prompt"], str):
+        r = lint(parts["prompt"], parts["welcome"], None, parts["tts"], parts["multilingual"], parts["platform"])
         out["speakability"] = r.score
         findings += [(f.severity, f.rule) for f in r.findings]
     out["findings"] = findings
-    out["name"] = find_key(agent, ("agent_name",)) or "voice agent"
+    out["name"] = find_key(agent, ("agent_name",)) or agent.get("name") or "voice agent"
     return out
 
 

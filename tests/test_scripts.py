@@ -203,6 +203,50 @@ class FleetTests(unittest.TestCase):
             self.assertEqual(run_script("audit_config.py", d, "--min-score", "60").returncode, 1)
 
 
+class PlatformTests(unittest.TestCase):
+    def test_detect_and_extract(self):
+        from lint_prompt import detect_platform, extract_agent_text
+        self.assertEqual(detect_platform(load("cod-confirmation", "agent.json")), "bolna")
+        vapi = load("vapi-emi-reminder", "assistant.json")
+        retell = load("retell-emi-reminder", "agent.json")
+        self.assertEqual(detect_platform(vapi), "vapi")
+        self.assertEqual(detect_platform(retell), "retell")
+        v = extract_agent_text(vapi)
+        self.assertIn("Acme Finance", v["prompt"])
+        self.assertTrue(v["welcome"].startswith("Namaste"))
+        self.assertEqual(v["tts"], "elevenlabs")
+        r = extract_agent_text(retell)
+        self.assertIn("EMI", r["prompt"])
+        self.assertTrue(r["multilingual"])
+
+    def test_vapi_audit(self):
+        a = audit(load("vapi-emi-reminder", "assistant.json"), None)
+        found = rules(a.findings)
+        for rule in ("call-cut-off", "llm-reasoning-effort", "tts-language-unsupported", "smart-endpointing-language",
+                     "interrupt-too-easy", "online-check-language", "voicemail-off", "no-outcome-capture",
+                     "transfer-promise", "legacy-fields", "multilingual-off"):
+            self.assertIn(rule, found)
+        self.assertEqual(a.summary["platform"], "vapi")
+        self.assertIn("speakability_score", a.summary)
+
+    def test_retell_audit(self):
+        a = audit(load("retell-emi-reminder", "agent.json"), None)
+        found = rules(a.findings)
+        for rule in ("call-cut-off", "platform-language-unsupported", "stt-language-unsupported",
+                     "tts-language-unsupported", "silence-hangup-long", "interrupt-too-hard", "voicemail-off",
+                     "no-outcome-capture", "transfer-promise", "deprecated-model-fields", "online-check-off"):
+            self.assertIn(rule, found)
+        self.assertNotIn("switch-rule-with-multilingual", rules(lint(
+            "Reply in the caller's language.", None, None, "elevenlabs", True, "retell").findings))
+
+    def test_other_platforms_patch_only(self):
+        merged, changed = apply(load("vapi-emi-reminder", "assistant.json"),
+                                {"maxDurationSeconds": 300, "voicemailDetection": {"provider": "vapi"}})
+        self.assertEqual(merged["maxDurationSeconds"], 300)
+        self.assertTrue(all(c["method"] == "PATCH" for c in changed))
+        self.assertNotIn("call-cut-off", rules(audit(merged, None).findings))
+
+
 class ApplyChangesTests(unittest.TestCase):
     def test_merge_scores_and_methods(self):
         agent = load("cod-confirmation", "agent.json")

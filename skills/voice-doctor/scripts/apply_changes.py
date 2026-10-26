@@ -26,7 +26,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from audit_config import audit  # noqa: E402
-from lint_prompt import PROMPT_KEYS, WELCOME_KEYS, find_key, lint, tts_from_synthesizer  # noqa: E402
+from lint_prompt import detect_platform, extract_agent_text, lint  # noqa: E402
 
 # Fields Bolna's PATCH /v2/agent/{id} accepts (references/bolna.md). Everything
 # else needs a full PUT, which replaces the whole agent.
@@ -98,15 +98,11 @@ def method_for(path: str) -> str:
 
 
 def scores(agent: dict) -> dict:
-    prompt = find_key(agent, PROMPT_KEYS)
-    welcome = find_key(agent, WELCOME_KEYS)
+    parts = extract_agent_text(agent)
     a = audit(agent, None)
     out = {"config": a.score, "config_findings": sorted(f.rule for f in a.findings)}
-    if isinstance(prompt, str):
-        ml = find_key(agent, ("multilingual_config",))
-        r = lint(prompt, welcome if isinstance(welcome, str) else None, None,
-                 tts_from_synthesizer(find_key(agent, ("synthesizer",))),
-                 bool(isinstance(ml, dict) and ml.get("enabled")))
+    if isinstance(parts["prompt"], str):
+        r = lint(parts["prompt"], parts["welcome"], None, parts["tts"], parts["multilingual"], parts["platform"])
         out.update(speakability=r.score, speakability_findings=sorted(f.rule for f in r.findings))
     return out
 
@@ -119,8 +115,10 @@ def short(v, n=70) -> str:
 
 def apply(agent: dict, changes: dict):
     merged = copy.deepcopy(agent)
-    changed = merge(merged, align(changes, agent))
-    return merged, [{"field": p, "old": o, "new": n, "method": method_for(p)} for p, o, n in changed]
+    changed = merge(merged, align(changes, agent) if detect_platform(agent) == "bolna" else changes)
+    bolna = detect_platform(agent) == "bolna"  # Vapi and Retell update everything through PATCH
+    return merged, [{"field": p, "old": o, "new": n, "method": method_for(p) if bolna else "PATCH"}
+                    for p, o, n in changed]
 
 
 def main() -> int:

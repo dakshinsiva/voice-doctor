@@ -1,5 +1,5 @@
 name: voice-doctor
-description: Catch what makes a phone voice agent sound robotic, in CI. Lints prompts and audits Bolna agent configs.
+description: Catch what makes a phone voice agent sound robotic, in CI. Lints prompts and audits Bolna, Vapi and Retell agent configs.
 author: dakshinsiva
 branding:
   icon: phone-call
@@ -7,7 +7,7 @@ branding:
 
 inputs:
   agents:
-    description: Space-separated globs of Bolna agent JSON files (config and prompt are both checked), e.g. "agents/**/*.json"
+    description: Space-separated globs of agent JSON files (Bolna agent, Vapi assistant, or Retell {agent, retell_llm}); config and prompt are both checked, e.g. "agents/**/*.json"
     required: false
     default: ""
   prompts:
