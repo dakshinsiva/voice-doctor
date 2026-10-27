@@ -112,7 +112,8 @@ def analyse(execs: list, agent: dict | None) -> dict:
         user_lines = [t for r, t in turns if r == "user"]
         calls.append({"id": cid, "answered": answered, "voicemail": vm, "duration": dur,
                       "hangup_by": tel.get("hangup_by"), "hangup_reason": tel.get("hangup_reason"),
-                      "cost": num(e.get("total_cost")), "agent_words": sum(len(words(t)) for t in agent_lines)})
+                      "cost": num(e.get("total_cost")), "agent_words": sum(len(words(t)) for t in agent_lines),
+                      "outcome": bool(e.get("extracted_data"))})
 
         if not applied:
             ub = e.get("usage_breakdown") or {}
@@ -188,6 +189,15 @@ def analyse(execs: list, agent: dict | None) -> dict:
     for cid in capped:
         issues_per_call[cid] += 1
 
+    # Where the money went: calls that couldn't have produced an outcome vs real conversations.
+    spend = Counter()
+    for c in calls:
+        early = (str(c["hangup_by"] or "").lower() in ("user", "customer", "caller") and (c["duration"] or 0) < 20)
+        cat = ("unanswered" if not c["answered"] else "voicemail" if c["voicemail"] else "cut_off" if c["id"] in capped
+               else "early_hangup" if early else "conversation")
+        spend[cat] += c["cost"] or 0
+    live = [c for c in calls if c["answered"] and not c["voicemail"]]
+
     stats = {
         "calls": len(calls),
         "answered": len(answered),
@@ -197,6 +207,9 @@ def analyse(execs: list, agent: dict | None) -> dict:
         "hangup_by": dict(Counter(c["hangup_by"] for c in calls if c["hangup_by"])),
         "top_hangup_reasons": Counter(c["hangup_reason"] for c in calls if c["hangup_reason"]).most_common(3),
         "cost_cents_per_answered_minute": round(cost / minutes, 2) if minutes else None,
+        "spend_cents": {k: round(v, 2) for k, v in spend.items()} if any(c["cost"] for c in calls) else None,
+        "live_conversations": len(live),
+        "conversations_with_outcome": sum(c["outcome"] for c in live),
         "latency_ms": {k: {"p50": pct(v, 50), "p95": pct(v, 95), "n": len([x for x in v if x is not None])}
                        for k, v in lat.items()},
         "interruptions_per_call": {
@@ -276,6 +289,21 @@ def findings(s: dict) -> list:
     if s["calls_with_romanised_hindi"]:
         add("romanised-output", "high", f"{s['calls_with_romanised_hindi']} calls have the agent writing romanised Hindi to a Sarvam voice.",
             "Add a script rule: Hindi in Devanagari, English words in English letters.")
+    sp = s.get("spend_cents")
+    total = sum(sp.values()) if sp else 0
+    if total:
+        wasted = {k: sp.get(k, 0) for k in ("voicemail", "cut_off", "early_hangup", "unanswered")}
+        share = sum(wasted.values()) / total
+        if share > 0.25:
+            parts = ", ".join(f"{label} {wasted[k] / total:.0%}" for k, label in
+                              (("voicemail", "voicemail"), ("cut_off", "calls cut off at the cap"),
+                               ("early_hangup", "hang-ups in the first 20 s"), ("unanswered", "unanswered")) if wasted[k])
+            add("wasted-spend", "medium", f"{share:.0%} of spend went to calls that couldn't finish: {parts}.",
+                "The usual fixes: voicemail detection, a call cap longer than the flow, and a shorter welcome.")
+    if s["live_conversations"] >= 2 and s["conversations_with_outcome"] == 0:
+        add("no-outcomes-recorded", "medium", f"None of the {s['live_conversations']} live conversations has extracted "
+            "data, so success can only be guessed from transcripts.",
+            "Add outcome capture: Bolna extractions, Vapi structured outputs, or Retell post_call_analysis_data.")
     if s["calls_at_duration_cap"]:
         add("calls-capped", "high", f"{len(s['calls_at_duration_cap'])} calls end at the maximum call length.",
             "Raise task_config.call_terminate above your longest real call.")
@@ -304,6 +332,13 @@ def render(s: dict) -> str:
            f"Hung up by: {s['hangup_by'] or 'unknown'}"]
     if s["cost_cents_per_answered_minute"]:
         out.append(f"Cost: {s['cost_cents_per_answered_minute']} cents per answered minute")
+    if s.get("spend_cents"):
+        sp = s["spend_cents"]
+        total = sum(sp.values())
+        labels = (("conversation", "conversations"), ("voicemail", "voicemail"), ("cut_off", "cut off at cap"),
+                  ("early_hangup", "early hang-ups"), ("unanswered", "unanswered"))
+        out.append(f"Spend: {total:g} cents · " + " · ".join(f"{label} {sp[k]:g} ({sp[k] / total:.0%})"
+                                                            for k, label in labels if sp.get(k)))
     out.append(f"Latency: first audio {ms('ttfa')} | STT {ms('transcriber')} | LLM first token {ms('llm')} | TTS first chunk {ms('synthesizer')}")
     if s.get("processing_ms_p50"):
         out.append(f"Typical turn: {s.get('configured_wait_ms') or '?'} ms configured wait + {s['processing_ms_p50']} ms processing")

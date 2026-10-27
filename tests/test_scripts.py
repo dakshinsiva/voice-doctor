@@ -336,6 +336,16 @@ class CallStatsTests(unittest.TestCase):
         self.assertEqual(s["answered"], 5)
         self.assertEqual(len(s["calls_at_duration_cap"]), 2)
 
+    def test_spend_breakdown(self):
+        s = analyse(load_executions(load("cod-confirmation", "executions.json")), load("cod-confirmation", "agent.json"))
+        sp = s["spend_cents"]
+        self.assertAlmostEqual(sum(sp.values()), 53.9, places=1)
+        self.assertAlmostEqual(sp["cut_off"], 28.2, places=1)
+        self.assertAlmostEqual(sp["voicemail"], 9.8, places=1)
+        found = rules(s["findings"])
+        self.assertIn("wasted-spend", found)
+        self.assertIn("no-outcomes-recorded", found)
+
 
 if __name__ == "__main__":
     unittest.main()
