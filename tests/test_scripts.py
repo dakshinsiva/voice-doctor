@@ -13,6 +13,7 @@ from apply_changes import apply, method_for  # noqa: E402
 from audit_config import audit, expected_minutes  # noqa: E402
 from scorecard import badge, checkup, svg  # noqa: E402
 from test_calls import scenarios, settings  # noqa: E402
+from vocab import build as build_vocab, change_file  # noqa: E402
 from call_stats import analyse, load_executions  # noqa: E402
 from lint_prompt import lint  # noqa: E402
 
@@ -272,6 +273,30 @@ class TestCallTests(unittest.TestCase):
         s = analyse(dry, load("cod-confirmation", "agent.json"))
         self.assertEqual(s["answered"], 1)
         self.assertIn("unspeakable-output", rules(s["findings"]))
+
+
+class VocabTests(unittest.TestCase):
+    def test_keywords_and_watchlist(self):
+        r = build_vocab(load("cod-confirmation", "agent.json"))
+        self.assertEqual(r["keywords"], ["Acme Bazaar", "COD"])
+        watch = {w["term"]: w["risk"] for w in r["pronunciation_watchlist"]}
+        self.assertEqual(watch["COD"], "may be read as a word")
+        self.assertIn("Neha", watch)  # the agent says its own name, but callers don't need it boosted
+        appt = build_vocab(load("appointment-reminder", "agent.json"))
+        self.assertIn("SmileCare Dental Clinic", appt["keywords"])
+        self.assertNotIn("Kavya", appt["keywords"])
+
+    def test_wasted_existing_keywords_and_change_files(self):
+        agent = load("cod-confirmation", "agent.json")
+        agent["agent_config"]["tasks"][0]["tools_config"]["transcriber"]["keywords"] = "Neha, Namaste, Acme Bazaar"
+        r = build_vocab(agent)
+        self.assertEqual(sorted(r["wasted"]), ["Namaste", "Neha"])
+        merged, _ = apply(agent, change_file(agent, r))
+        self.assertEqual(merged["agent_config"]["tasks"][0]["tools_config"]["transcriber"]["keywords"], "Acme Bazaar, COD")
+        vapi = load("vapi-emi-reminder", "assistant.json")
+        self.assertEqual(change_file(vapi, build_vocab(vapi)), {"transcriber": {"keyterm": ["Acme Finance", "EMI"]}})
+        retell = load("retell-emi-reminder", "agent.json")
+        self.assertIn("boosted_keywords", change_file(retell, build_vocab(retell))["agent"])
 
 
 class ApplyChangesTests(unittest.TestCase):
