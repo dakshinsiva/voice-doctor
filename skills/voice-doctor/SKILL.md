@@ -1,6 +1,6 @@
 ---
 name: voice-doctor
-description: Checkup and fixes for phone voice agents, built for Bolna with Sarvam, Deepgram, Cartesia, ElevenLabs, Plivo and Exotel, with config checks for Vapi and Retell too. Rewrites system prompts and welcome messages so they sound right spoken (short turns, no markdown, numbers in the form the TTS wants, Hindi and Indic in native script), audits agent configs for latency, interruptions, endpointing, call cut-offs and language or voice mismatches, and reviews transcripts and latency_data across many calls. Use it whenever someone builds, tests, debugs or tunes a voice agent, AI calling agent or outbound calling bot, especially on Bolna, or shares a Bolna agent JSON, Vapi assistant, Retell agent, prompt, transcript or execution. Also use it for complaints like "sounds robotic", "long pause before it answers", "keeps cutting people off", "reads out asterisks or links", "mispronounces Hindi", "Hinglish", "calls end suddenly", or before launching a voice agent or calling batch.
+description: Checkup and fixes for voice AI agents built in India, so they stop sounding robotic, pausing too long, talking over callers or dropping calls. Rewrites prompts and first messages for speech in Hindi, Hinglish, Kannada, Tamil, Telugu, other Indian languages and Indian English (native script, code-mixing, ₹ and lakh, pincodes, names), audits configs on Bolna, Vapi, Retell, LiveKit and Pipecat (endpointing, interruptions, silence and call-length limits, voicemail, which Sarvam, Deepgram, ElevenLabs and Cartesia models support which Indian languages, Exotel and Plivo routing), and reviews transcripts, latency and spend across calls. Use it whenever someone builds, reviews, debugs or tunes a voice agent, AI calling agent or voice bot on any stack, shares an agent config, prompt, code or call logs, or says it sounds robotic, is slow, cuts people off, reads out links or IDs, mispronounces Hindi or names, or hangs up early, and before any launch or calling batch.
 ---
 
 # Voice Doctor
@@ -136,13 +136,15 @@ voice-doctor reads; it doesn't change live agents on its own. If the user wants 
 
 ## Other platforms
 
-`audit_config.py`, `lint_prompt.py --agent-json`, `apply_changes.py` and `scorecard.py` detect the platform from the export's shape:
+`audit_config.py`, `lint_prompt.py --agent-json`, `apply_changes.py`, `scorecard.py`, `test_calls.py` and `vocab.py` detect the platform from the export's shape:
 - **Vapi**: the assistant JSON (`GET /assistant/{id}`). Facts and field paths: `references/vapi.md`.
 - **Retell**: the agent and its Retell LLM combined in one file as `{"agent": {...}, "retell_llm": {...}}`. Fetch both objects and combine them first. Facts: `references/retell.md`.
 
 Both platforms change things through PATCH, so there's no PUT warning. Their checks use each platform's own field names, units and defaults, which differ from Bolna's. Two in particular: Retell keeps silent calls open for 10 minutes by default, and Vapi has no native Sarvam. Watch the language tables too. Retell has no Telugu, Malayalam, Bengali, Gujarati or Punjabi; when callers need those, say so plainly rather than tuning around it.
 
-For LiveKit, Pipecat or a custom stack, review the config by hand against the same ideas (end-of-turn silence, interruption threshold, maximum call length, voicemail, TTS chunking, streaming) using `references/bolna.md`'s table and `references/providers.md`. `call_stats.py` works on any JSON with `transcript` strings in `assistant:`/`user:` lines; latency and interruption stats need Bolna's `latency_data`.
+- **LiveKit Agents and Pipecat**: point `audit_config.py` at the agent's `.py` file or project folder. It parses the source (it never imports or runs it) and reports each finding with `file:line`, plus a speakability score for the prompt it finds in the code (`Agent(instructions=...)`, `say()` text, `system_instruction`, or system messages, including module-level string constants). Facts: `references/livekit.md`, `references/pipecat.md`. Both frameworks changed their APIs recently: LiveKit moved turn settings into `TurnHandlingOptions`, and Pipecat 1.0 removed `PipelineParams(allow_interruptions)`, which is now silently ignored. Fix these by editing the code directly; show the diff, then re-run the audit for the after-score. Prompts that are built at runtime (f-strings, files, databases) can't be read from source, so ask for the final prompt text and lint it with `lint_prompt.py`.
+
+For any other stack, review the config by hand against the same ideas (end-of-turn silence, interruption threshold, maximum call length, voicemail, TTS chunking, streaming) using `references/bolna.md`'s table and `references/providers.md`. `call_stats.py` works on any JSON with `transcript` strings in `assistant:`/`user:` lines; latency and interruption stats need Bolna's `latency_data`.
 
 ## Care points
 

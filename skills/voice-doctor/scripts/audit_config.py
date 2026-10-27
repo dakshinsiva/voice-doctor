@@ -29,7 +29,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lint_prompt import (INDIAN_LANGUAGES, PROMPT_KEYS, SEVERITY_COST, WELCOME_KEYS,  # noqa: E402
                          detect_platform, extract_agent_text, find_key, gh_annotation, lint, retell_parts,
                          tts_from_synthesizer)
+from findings import Audit, Finding  # noqa: E402,F401
 from platforms import audit_retell, audit_vapi  # noqa: E402
+from code_checks import audit_code  # noqa: E402
+from code_scan import python_files, scan  # noqa: E402
 
 INDIC = {"hi", "kn", "ta", "te", "ml", "mr", "bn", "gu", "pa", "od", "or", "as", "ur"}
 LANG_NAME = {"hindi": "hi", "kannada": "kn", "tamil": "ta", "telugu": "te", "malayalam": "ml", "marathi": "mr",
@@ -41,29 +44,6 @@ SARVAM_V4F_NARROW = {"kn", "ta", "te"}
 SYNTH_NEEDS_LANGUAGE = {"cartesia", "sarvam", "smallest", "rime", "azuretts", "gemini", "soniox", "polly"}
 INDIAN_TELEPHONY = {"plivo", "exotel", "vobiz"}
 HEAVY_MODELS = re.compile(r"^(?:gpt-5\.5|gpt-5\.4|gpt-4\.1|gpt-4o|claude-opus|claude-sonnet)(?!.*mini)")
-
-
-@dataclass
-class Finding:
-    rule: str
-    severity: str
-    field: str
-    current: object
-    suggested: str
-    why: str
-
-
-@dataclass
-class Audit:
-    findings: list[Finding] = field(default_factory=list)
-    summary: dict = field(default_factory=dict)
-
-    def add(self, rule, severity, field_, current, suggested, why):
-        self.findings.append(Finding(rule, severity, field_, current, suggested, why))
-
-    @property
-    def score(self) -> int:
-        return max(0, 100 - sum(SEVERITY_COST[f.severity] for f in self.findings))
 
 
 def base_lang(code) -> str:
@@ -380,10 +360,12 @@ def render(a: Audit) -> str:
            f" | multilingual {'on' if s['multilingual'] else 'off'}"]
     if "speakability_score" in s:
         out.append(f"Prompt speakability: {s['speakability_score']}/100 ({s['speakability_findings']} findings; "
-                   f"run lint_prompt.py --agent-json for details). Top: {', '.join(s['top_prompt_issues'])}")
+                   + ("the prompt is in the code; " if s.get('platform') in ("livekit", "pipecat") else "run lint_prompt.py --agent-json for details; ")
+                   + f"top: {', '.join(s['top_prompt_issues'])})")
     out.append("")
     for f in sorted(a.findings, key=lambda f: order[f.severity]):
-        out.append(f"[{f.severity.upper():6}] {f.rule}: {f.field}")
+        loc = f" ({os.path.relpath(f.file)}:{f.line})" if f.file else ""
+        out.append(f"[{f.severity.upper():6}] {f.rule}: {f.field}{loc}")
         out.append(f"         now: {f.current!r}  ->  suggested: {f.suggested}")
         out.append(f"         {f.why}")
     return "\n".join(out)
@@ -432,11 +414,16 @@ def main() -> int:
     ap.add_argument("--min-score", type=int, help="exit with status 1 if any config score is below this (for CI)")
     args = ap.parse_args()
 
-    paths = expand(args.agent_json)
-    if not paths:
-        print("No agent JSON files found.", file=sys.stderr)
+    # LiveKit and Pipecat agents are Python code: a .py file or a folder of them.
+    code_targets = [p for p in args.agent_json if p.endswith(".py") or (
+        os.path.isdir(p) and python_files([p]) and scan([p]).framework() != "unknown")]
+    paths = expand([p for p in args.agent_json if p not in code_targets])
+    if not paths and not code_targets:
+        print("No agent JSON files or LiveKit/Pipecat code found.", file=sys.stderr)
         return 2
     results = []
+    for target in code_targets:
+        results.append((target, {"agent_name": os.path.basename(target.rstrip("/"))}, audit_code([target])))
     for path in paths:
         with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
@@ -449,8 +436,8 @@ def main() -> int:
     elif args.format == "github":
         for path, _, result in results:
             for f in result.findings:
-                print(gh_annotation(f.severity, path, f.rule,
-                                    f"{f.field}: now {f.current!r}, suggested {f.suggested}. {f.why}"))
+                print(gh_annotation(f.severity, f.file or path, f.rule,
+                                    f"{f.field}: now {f.current!r}, suggested {f.suggested}. {f.why}", f.line))
             print(f"voice-doctor config score {result.score}/100 for {path} ({len(result.findings)} findings)")
     elif len(results) == 1:
         print(render(results[0][2]))

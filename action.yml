@@ -1,5 +1,5 @@
 name: voice-doctor
-description: Catch what makes a phone voice agent sound robotic, in CI. Lints prompts and audits Bolna, Vapi and Retell agent configs.
+description: Catch what makes a phone voice agent sound robotic, in CI. Audits Bolna, Vapi, Retell, LiveKit and Pipecat agents.
 author: dakshinsiva
 branding:
   icon: phone-call
@@ -7,7 +7,7 @@ branding:
 
 inputs:
   agents:
-    description: Space-separated globs of agent JSON files (Bolna agent, Vapi assistant, or Retell {agent, retell_llm}); config and prompt are both checked, e.g. "agents/**/*.json"
+    description: Space-separated globs of agents to check - Bolna, Vapi or Retell JSON exports, or LiveKit/Pipecat Python files - e.g. "agents/**/*.json src/agent.py"
     required: false
     default: ""
   prompts:
@@ -52,7 +52,10 @@ runs:
           for f in $pattern; do
             checked=$((checked + 1))
             python3 "$VD_SCRIPTS/audit_config.py" "$f" --format github --min-score "$VD_MIN_CONFIG" || status=1
-            python3 "$VD_SCRIPTS/lint_prompt.py" --agent-json "$f" --format github --min-score "$VD_MIN_SPEAK" || status=1
+            case "$f" in
+              *.py) ;;  # LiveKit / Pipecat code: the audit already checks the prompt inside it
+              *) python3 "$VD_SCRIPTS/lint_prompt.py" --agent-json "$f" --format github --min-score "$VD_MIN_SPEAK" || status=1 ;;
+            esac
           done
         done
         for pattern in $VD_PROMPTS; do

@@ -14,6 +14,8 @@ from audit_config import audit, expected_minutes  # noqa: E402
 from scorecard import badge, checkup, svg  # noqa: E402
 from test_calls import scenarios, settings  # noqa: E402
 from vocab import build as build_vocab, change_file  # noqa: E402
+from code_checks import audit_code  # noqa: E402
+from code_scan import is_literal, scan  # noqa: E402
 from call_stats import analyse, load_executions  # noqa: E402
 from lint_prompt import lint  # noqa: E402
 
@@ -297,6 +299,43 @@ class VocabTests(unittest.TestCase):
         self.assertEqual(change_file(vapi, build_vocab(vapi)), {"transcriber": {"keyterm": ["Acme Finance", "EMI"]}})
         retell = load("retell-emi-reminder", "agent.json")
         self.assertIn("boosted_keywords", change_file(retell, build_vocab(retell))["agent"])
+
+
+class CodeAgentTests(unittest.TestCase):
+    def test_livekit(self):
+        a = audit_code([os.path.join(EX, "livekit-hindi-agent")])
+        found = rules(a.findings)
+        for rule in ("llm-reasoning-effort", "tts-language-default-en", "endpointing-too-low", "interrupt-disabled",
+                     "turn-detector-english", "stt-deprecated", "no-away-handling", "no-noise-cancellation",
+                     "deprecated-session-kwargs", "deprecated-turn-detector"):
+            self.assertIn(rule, found)
+        self.assertEqual(a.summary["platform"], "livekit")
+        self.assertTrue(all(f.file and f.file.endswith("agent.py") for f in a.findings))
+        self.assertIn("romanised-indic", a.summary["top_prompt_issues"])  # the say() greeting is romanised Hindi
+
+    def test_pipecat(self):
+        a = audit_code([os.path.join(EX, "pipecat-hindi-bot")])
+        found = rules(a.findings)
+        for rule in ("tts-language-default-en", "llm-reasoning-effort", "removed-in-pipecat-1", "interrupt-disabled",
+                     "vad-stop-secs", "no-idle-handling", "no-idle-cancel", "no-noise-cancellation", "deprecated-alias"):
+            self.assertIn(rule, found)
+        self.assertIn("speakability_score", a.summary)  # prompt resolved from a module constant
+
+    def test_scanner_never_runs_code_and_marks_variables(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, "a.py"), "w") as fh:
+                fh.write("import os\nfrom livekit.agents import AgentSession\nraise SystemExit('never run')\n"
+                         "AgentSession(llm=os.environ['M'], min_endpointing_delay=0.5)\n")
+            src = scan([d])
+            s = src.find("AgentSession")[0]
+            self.assertFalse(is_literal(s.get("llm")))
+            self.assertEqual(s.get("min_endpointing_delay"), 0.5)
+            self.assertEqual(src.framework(), "livekit")
+
+    def test_audit_config_routes_code(self):
+        out = run_script("audit_config.py", os.path.join(EX, "livekit-hindi-agent", "agent.py"), "--format", "github").stdout
+        self.assertRegex(out, r"::error file=.*agent\.py,line=\d+,title=voice-doctor turn-detector-english")
 
 
 class ApplyChangesTests(unittest.TestCase):
