@@ -117,7 +117,7 @@ What plain Claude got wrong that the skill didn't:
 
 The trade-off: with the skill, a task takes one or two minutes longer, because it runs its checks and writes the full set of files.
 
-Triggering: installed, Claude Code (Sonnet 4.6) loaded the skill on 10 of 10 voice-agent requests and on none of 10 near-misses (TTS scripting, webhook code, transcription, buying numbers).
+Triggering: installed, Claude Code (Sonnet 4.6) loaded the skill on 15 of 16 voice-agent requests from Indian teams across Bolna, Vapi, Retell, LiveKit and Pipecat, and on none of 14 near-misses (a WhatsApp text bot, TTS scripting, an IVR script for a voice artist, Exotel KYC, Whisper fine-tuning, webhook code).
 
 One run per task per setup, so read these as strong signals, not a benchmark. Prompts and checks are in [`evals/`](evals).
 

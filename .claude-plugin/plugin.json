@@ -1,7 +1,7 @@
 {
   "name": "voice-doctor",
   "description": "The checkup every voice agent built in India should get: fixes agents that sound robotic in Hindi, Hinglish, Kannada, Tamil, Telugu and Indian English. Audits Bolna, Vapi, Retell, LiveKit and Pipecat, with Sarvam, Deepgram, ElevenLabs and Cartesia voices.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "dakshinsiva"
   },

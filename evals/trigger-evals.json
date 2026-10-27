@@ -1,22 +1,122 @@
 [
-  {"query": "my bolna agent keeps cutting off customers when they read out their pincode, endpointing is 100 i think. how do i fix this", "should_trigger": true},
-  {"query": "building an outbound EMI reminder bot on bolna with sarvam bulbul v4 flash and the hindi sounds super off, like it says 'aap' weird. prompt is in prompts/collections.md, can you look", "should_trigger": true},
-  {"query": "Can you review this system prompt before I launch a batch of 2,000 COD confirmation calls tomorrow? It's a Bolna agent, Hindi + English, prompt pasted below:\n\nYou are Neha from ShopKart. Confirm the order #{{order_id}} for ₹{{amount}} and ask if address is same...", "should_trigger": true},
-  {"query": "there's like a 2-3 second gap after the customer stops talking before my voice agent replies. stack is deepgram nova-3 + gpt-5.4 + cartesia sonic-3 on bolna. what's slowing it down", "should_trigger": true},
-  {"query": "pulled last week's executions from bolna into data/calls.json, answer rate is fine but confirmations are low. go through the transcripts and tell me what's breaking", "should_trigger": true},
-  {"query": "lol the agent literally said 'asterisk asterisk' to a customer today. how do i stop my phone bot from reading markdown out loud", "should_trigger": true},
-  {"query": "making a kannada appointment reminder bot for a dental clinic in bangalore on bolna. should the voice be elevenlabs or sarvam? also our welcome message feels way too long", "should_trigger": true},
-  {"query": "Our Vapi assistant that takes restaurant reservations over the phone sounds robotic and talks way too much. Here's the system prompt, make it sound natural on a call", "should_trigger": true},
-  {"query": "calls on our bolna agent keep ending at exactly 1:30 even when the customer is still talking, what setting is that", "should_trigger": true},
-  {"query": "rewrite the welcome message for my bolna loan follow-up agent, current one is: 'Hello! This is Riya from XYZ Finance calling regarding your loan application number LN-2231 dated 12/09/2026, could you confirm your details and also tell me a good time to visit?'", "should_trigger": true},
-  {"query": "write a 60 second podcast intro script in Hindi for my YouTube channel about personal finance, energetic tone", "should_trigger": false},
-  {"query": "write a python script that calls Sarvam's text-to-speech API to turn chapter1.txt into an mp3 audiobook", "should_trigger": false},
-  {"query": "set up a Next.js route that receives Bolna's post-call webhook and saves the summary and extracted_data into our Neon postgres table", "should_trigger": false},
-  {"query": "how do i get an indian phone number on plivo for inbound calls, what KYC documents do they ask for a private limited company", "should_trigger": false},
-  {"query": "transcribe meeting.wav from yesterday's standup and pull out the action items with owners", "should_trigger": false},
-  {"query": "build a chat widget for our website that answers FAQs from the docs folder using RAG", "should_trigger": false},
-  {"query": "my alexa skill keeps failing certification because of the intent schema, here's the interaction model json", "should_trigger": false},
-  {"query": "compare deepgram vs assemblyai pricing for batch transcribing about 10,000 hours of old call-centre recordings", "should_trigger": false},
-  {"query": "write jest tests for the express handler in src/twilio/inbound.ts that validates the twilio signature", "should_trigger": false},
-  {"query": "translate our app's onboarding strings in locales/en.json into Hindi, Tamil and Kannada", "should_trigger": false}
+  {
+    "query": "my bolna agent keeps cutting off customers when they read out their pincode, endpointing is 100 i think. how do i fix this",
+    "should_trigger": true
+  },
+  {
+    "query": "building an outbound EMI reminder bot on bolna with sarvam bulbul v4 flash and the hindi sounds super off, like it says 'aap' weird. prompt is in prompts/collections.md, can you look",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you review this system prompt before I launch a batch of 2,000 COD confirmation calls tomorrow? It's a Bolna agent, Hindi + English, prompt pasted below:\n\nYou are Neha from ShopKart. Confirm the order #{{order_id}} for ₹{{amount}} and ask if address is same...",
+    "should_trigger": true
+  },
+  {
+    "query": "there's like a 2-3 second gap after the customer stops talking before my voice agent replies. stack is deepgram nova-3 + gpt-5.4 + cartesia sonic-3 on bolna. what's slowing it down",
+    "should_trigger": true
+  },
+  {
+    "query": "pulled last week's executions from bolna into data/calls.json, answer rate is fine but confirmations are low. go through the transcripts and tell me what's breaking",
+    "should_trigger": true
+  },
+  {
+    "query": "lol the agent literally said 'asterisk asterisk' to a customer today. how do i stop my phone bot from reading markdown out loud",
+    "should_trigger": true
+  },
+  {
+    "query": "making a kannada appointment reminder bot for a dental clinic in bangalore on bolna. should the voice be elevenlabs or sarvam? also our welcome message feels way too long",
+    "should_trigger": true
+  },
+  {
+    "query": "Our Vapi assistant that takes restaurant reservations over the phone sounds robotic and talks way too much. Here's the system prompt, make it sound natural on a call",
+    "should_trigger": true
+  },
+  {
+    "query": "calls on our bolna agent keep ending at exactly 1:30 even when the customer is still talking, what setting is that",
+    "should_trigger": true
+  },
+  {
+    "query": "rewrite the welcome message for my bolna loan follow-up agent, current one is: 'Hello! This is Riya from XYZ Finance calling regarding your loan application number LN-2231 dated 12/09/2026, could you confirm your details and also tell me a good time to visit?'",
+    "should_trigger": true
+  },
+  {
+    "query": "write a 60 second podcast intro script in Hindi for my YouTube channel about personal finance, energetic tone",
+    "should_trigger": false
+  },
+  {
+    "query": "write a python script that calls Sarvam's text-to-speech API to turn chapter1.txt into an mp3 audiobook",
+    "should_trigger": false
+  },
+  {
+    "query": "set up a Next.js route that receives Bolna's post-call webhook and saves the summary and extracted_data into our Neon postgres table",
+    "should_trigger": false
+  },
+  {
+    "query": "how do i get an indian phone number on plivo for inbound calls, what KYC documents do they ask for a private limited company",
+    "should_trigger": false
+  },
+  {
+    "query": "transcribe meeting.wav from yesterday's standup and pull out the action items with owners",
+    "should_trigger": false
+  },
+  {
+    "query": "build a chat widget for our website that answers FAQs from the docs folder using RAG",
+    "should_trigger": false
+  },
+  {
+    "query": "my alexa skill keeps failing certification because of the intent schema, here's the interaction model json",
+    "should_trigger": false
+  },
+  {
+    "query": "compare deepgram vs assemblyai pricing for batch transcribing about 10,000 hours of old call-centre recordings",
+    "should_trigger": false
+  },
+  {
+    "query": "write jest tests for the express handler in src/twilio/inbound.ts that validates the twilio signature",
+    "should_trigger": false
+  },
+  {
+    "query": "translate our app's onboarding strings in locales/en.json into Hindi, Tamil and Kannada",
+    "should_trigger": false
+  },
+  {
+    "query": "our livekit agent for a pune hospital speaks marathi badly and keeps interrupting patients, the code is in agent.py",
+    "should_trigger": true
+  },
+  {
+    "query": "pipecat bot on exotel for EMI reminders in hinglish, customers say it pauses for 2 seconds before every reply",
+    "should_trigger": true
+  },
+  {
+    "query": "vapi assistant for a chennai real estate firm, tamil callers say it doesn't understand them. assistant.json attached",
+    "should_trigger": true
+  },
+  {
+    "query": "retell agent that calls kirana shop owners in telugu, can you check the config before we launch next week",
+    "should_trigger": true
+  },
+  {
+    "query": "how should I write the system prompt for a sarvam bulbul voice agent that confirms clinic appointments in hindi?",
+    "should_trigger": true
+  },
+  {
+    "query": "our english voice bot for a bangalore bank reads out account numbers weirdly and speaks too fast, prompt is in prompts/bank.md",
+    "should_trigger": true
+  },
+  {
+    "query": "build a hindi text chatbot for whatsapp business using gpt, no voice",
+    "should_trigger": false
+  },
+  {
+    "query": "translate our IVR menu script into tamil so our voice artist can record it",
+    "should_trigger": false
+  },
+  {
+    "query": "set up an exotel virtual number and finish the kyc for our pvt ltd",
+    "should_trigger": false
+  },
+  {
+    "query": "fine-tune whisper on 50 hours of kannada call-centre audio",
+    "should_trigger": false
+  }
 ]
