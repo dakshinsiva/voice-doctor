@@ -48,6 +48,7 @@ Found in testing, on synthetic agents, public Bolna agents from GitHub and a liv
 - 🔗 **Things nobody can use by ear.** Order IDs, `#` signs, links, emails, `**bold**` and "18/10" read aloud.
 - 🧩 **Template leftovers.** A literal `***REMOVED***` in the persona line and a `your-domain.com` webhook in an open-source agent people copy.
 - 🪤 **Platform traps.** Retell keeps a silent call open for 10 minutes by default and has no voicemail detection on agents created through the API. Vapi's voicemail detection is off by default, and fields like `silenceTimeoutSeconds` aren't in its current schema. Neither platform covers every Indian language: Retell has no Telugu, Malayalam, Bengali, Gujarati or Punjabi.
+- 💸 **Money spent on calls that couldn't finish.** In the sample week, 72% of spend went to calls cut off at the 90 s cap (52%) and to voicemail (18%).
 - 🐢 **Slow turns, measured.** LLM first token p50 1,480 ms / p95 1,910 ms from `reasoning_effort: medium`, plus 1,000 ms of configured waits, across every call in `latency_data`.
 
 ## What you get
@@ -57,10 +58,14 @@ Found in testing, on synthetic agents, public Bolna agents from GitHub and a liv
 | `report.md` | Ranked by what the caller experiences, with evidence from your calls |
 | `system_prompt.md` | Rewritten to be spoken: short turns, situations (busy, wrong person, voicemail, "are you a robot?"), safety limits |
 | `welcome.txt` | Under 25 words, discloses AI, checks identity first |
-| `config-changes.json` | Only the fields to change, in Bolna's structure |
-| Test-call script | 5–8 things to say on a real call to prove the fixes |
+| `config-changes.json` | Only the fields to change, in your platform's structure |
+| `agent.fixed.json` | Your agent with the changes merged and re-scored, ready to apply after a backup |
+| `test-calls.md` | Test calls built from *your* agent: lines to say in its language, using its own timers, with the expected outcome to tick off |
+| Keywords | Speech-to-text keywords for your brand and place names, plus a pronunciation watchlist ("COD" can come out as the fish) |
 
 Plus a before/after **speakability** and **config** score you can track.
+
+**Dry run before a real call.** Claude plays your agent with the rewritten prompt against every test-call scenario, and the same checks score its replies. You find a monologue or a slip into romanised Hindi before spending a single call.
 
 ## Why not just ask Claude?
 
@@ -97,7 +102,7 @@ Three checks, used depending on what you give it:
 |---|---|---|
 | Prompt | system prompt, welcome, per-call variables | markdown, links, numbers in the form your TTS wants, script and register for Indian languages, turn length, missing situations |
 | Config | Bolna agent JSON, Vapi assistant, or Retell agent + LLM | endpointing, interruptions, silence and hang-up timers, call length cap, voice and model language support, reasoning effort, TTS buffer, voicemail, calling hours, outcome capture |
-| Calls | Bolna executions | latency p50/p95 per component, interruptions, monologues, "hello? are you there?", loops, unspeakable output, calls hitting the cap, worst calls to listen to |
+| Calls | Bolna executions | latency p50/p95 per component, interruptions, monologues, "hello? are you there?", loops, unspeakable output, calls hitting the cap, **where the spend went** (voicemail, cut-offs, early hang-ups), missing outcomes, worst calls to listen to |
 
 The scripts are plain Python 3 with no dependencies. Claude reads their output, reads your prompt and worst calls itself, and writes the fixes.
 
@@ -160,6 +165,14 @@ python3 skills/voice-doctor/scripts/lint_prompt.py --agent-json examples/cod-con
 
 ```bash
 python3 skills/voice-doctor/scripts/call_stats.py examples/cod-confirmation/executions.json --agent-json examples/cod-confirmation/agent.json
+```
+
+```bash
+python3 skills/voice-doctor/scripts/test_calls.py examples/appointment-reminder/agent.json -o test-calls.md
+```
+
+```bash
+python3 skills/voice-doctor/scripts/vocab.py examples/cod-confirmation/agent.json
 ```
 
 Other ways to install: copy `skills/voice-doctor` into `~/.claude/skills/`.
