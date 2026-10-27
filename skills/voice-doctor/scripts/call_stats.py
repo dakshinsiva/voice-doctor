@@ -103,7 +103,9 @@ def analyse(execs: list, agent: dict | None) -> dict:
         dur = num(e.get("conversation_duration"))
         if dur is None:
             dur = num(tel.get("duration"))
-        answered = bool(dur and dur > 0)
+        turns_pre = parse_transcript(e.get("transcript", ""))
+        # Dry-run transcripts have no duration; a transcript with a caller in it counts as answered.
+        answered = bool(dur and dur > 0) or (dur is None and any(r == "user" for r, _ in turns_pre))
         vm = bool(e.get("answered_by_voice_mail"))
         turns = parse_transcript(e.get("transcript", ""))
         agent_lines = [t for r, t in turns if r == "agent"]

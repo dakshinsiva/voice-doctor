@@ -88,6 +88,7 @@ Write the results into a `voice-doctor/` folder next to the user's files (or the
 - `system_prompt.md` and `welcome.txt`: the rewrites
 - `config-changes.json`: only the changed fields
 - `agent.fixed.json`: the merged agent from `apply_changes.py`, ready to PUT after a backup
+- `test-calls.md`: the test-call checklist from `test_calls.py` (the report's "Test call" section can just summarise it)
 
 Report template:
 
@@ -116,6 +117,8 @@ Speakability <before> → <after> · Config <before> → <expected after> · <N>
 ## Not checked
 <What there was no data for, and assumptions made.>
 ```
+
+**Test calls and dry run.** Generate the test-call script instead of writing it by hand: `python3 scripts/test_calls.py agent.fixed.json --executions executions.json -o test-calls.md --json scenarios.json`. It picks scenarios from what the agent does (dictation only if it collects addresses or numbers, an other-language caller only if several languages are in play, replays of the real calls with the most caller turns) and uses the agent's own timers. Before the user spends real calls, dry-run the rewritten prompt: for each scenario in `scenarios.json`, play the agent (welcome first, then reply to each caller line exactly as the voice agent would speak it), and save the results as `dryrun.json` in the form `[{"id": "<scenario id>", "transcript": "assistant: …\nuser: …"}]`. Then run `python3 scripts/call_stats.py dryrun.json --agent-json agent.fixed.json`. Fix anything it flags (unspeakable output, long turns, romanised Hindi, loops) and check each scenario's `expect` list by reading the transcript. A dry run tests wording and flow, not latency, audio or speech-to-text, so the real test calls still matter.
 
 Offer a shareable scorecard once there's an after state: `python3 scripts/scorecard.py agent.json --after agent.fixed.json -o scorecard.svg --badge` writes a 1200×630 SVG with the before/after scores and the top problems fixed in plain words, and prints a README badge. Builders like posting these, so mention it in one line.
 

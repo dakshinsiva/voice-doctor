@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(ROOT, "skills", "voice-doctor", "scripts"))
 from apply_changes import apply, method_for  # noqa: E402
 from audit_config import audit, expected_minutes  # noqa: E402
 from scorecard import badge, checkup, svg  # noqa: E402
+from test_calls import scenarios, settings  # noqa: E402
 from call_stats import analyse, load_executions  # noqa: E402
 from lint_prompt import lint  # noqa: E402
 
@@ -245,6 +246,32 @@ class PlatformTests(unittest.TestCase):
         self.assertEqual(merged["maxDurationSeconds"], 300)
         self.assertTrue(all(c["method"] == "PATCH" for c in changed))
         self.assertNotIn("call-cut-off", rules(audit(merged, None).findings))
+
+
+class TestCallTests(unittest.TestCase):
+    def test_tailored_to_agent(self):
+        cod = load("cod-confirmation", "agent.json")
+        ids = {s["id"] for s in scenarios(cod, load_executions(load("cod-confirmation", "executions.json")))}
+        for sid in ("happy-path", "someone-else", "silence", "dictation", "scam-worry", "other-language", "long-call", "voicemail"):
+            self.assertIn(sid, ids)
+        self.assertTrue(any(i.startswith("replay-") for i in ids))
+        appt = scenarios(load("appointment-reminder", "agent.json"))
+        self.assertEqual(appt[0]["language"], "kn")
+        self.assertNotIn("scam-worry", {s["id"] for s in appt})  # no money in a dental reminder
+        silence = next(s for s in appt if s["id"] == "silence")
+        self.assertTrue(any("check may never play" in x for x in silence["expect"]))  # hang-up 4 s < check 10 s
+
+    def test_platform_timers(self):
+        v = settings(load("vapi-emi-reminder", "assistant.json"))
+        self.assertEqual((v["platform"], v["online_check"], v["cap"]), ("vapi", 8, 120))
+        r = settings(load("retell-emi-reminder", "agent.json"))
+        self.assertEqual((r["platform"], r["hangup"], r["online_check"]), ("retell", 600, None))
+
+    def test_dry_run_transcripts_count_as_answered(self):
+        dry = [{"id": "busy", "transcript": "assistant: **Order #AB-12345** confirm karein?\nuser: busy hoon"}]
+        s = analyse(dry, load("cod-confirmation", "agent.json"))
+        self.assertEqual(s["answered"], 1)
+        self.assertIn("unspeakable-output", rules(s["findings"]))
 
 
 class ApplyChangesTests(unittest.TestCase):
