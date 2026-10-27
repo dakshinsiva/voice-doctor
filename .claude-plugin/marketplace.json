@@ -1,13 +1,13 @@
 {
   "name": "voice-doctor",
-  "description": "voice-doctor: fixes phone voice agents that sound robotic, on Bolna and other stacks.",
+  "description": "voice-doctor: the checkup every voice agent built in India should get.",
   "owner": {
     "name": "dakshinsiva"
   },
   "plugins": [
     {
       "name": "voice-doctor",
-      "description": "Fixes voice agents that sound robotic: speakable prompts, latency and turn-taking audit, call review. Bolna-first, works on any stack.",
+      "description": "Fixes voice agents that sound robotic in Indian languages. Audits Bolna, Vapi, Retell, LiveKit and Pipecat.",
       "source": "./",
       "category": "development"
     }

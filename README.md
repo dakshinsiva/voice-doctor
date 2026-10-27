@@ -4,13 +4,16 @@
 
 **Your voice agent sounds robotic. voice-doctor finds out why and fixes it.**
 
-A Claude Code skill that listens to your phone agent the way a caller does (prompt, config and real calls), finds what makes it sound robotic, slow or rude, then rewrites the prompt, fixes the config and tells you exactly what to test.
-Built for **Bolna + Sarvam**, Indian languages first. Config checks for **Vapi** and **Retell** too.
+The checkup every voice agent built in India should get before it talks to a customer.
+
+A Claude Code skill that listens to your agent the way a caller does (prompt, config, code and real calls), finds what makes it sound robotic, slow or rude in **Hindi, Hinglish, Kannada, Tamil, Telugu and Indian English**, then rewrites the prompt, fixes the config and tells you exactly what to test.
+Works on **Bolna, Vapi, Retell, LiveKit and Pipecat**, with **Sarvam**, Deepgram, ElevenLabs and Cartesia voices over **Exotel, Plivo** or Twilio.
 
 [![tests](https://github.com/dakshinsiva/voice-doctor/actions/workflows/tests.yml/badge.svg)](https://github.com/dakshinsiva/voice-doctor/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Claude Code skill](https://img.shields.io/badge/Claude_Code-skill-d97757)
-![Built for Bolna + Sarvam](https://img.shields.io/badge/built_for-Bolna_%2B_Sarvam-6b4fbb)
+![Made for voice agents in India](https://img.shields.io/badge/made_for-voice_agents_in_India-ff9933)
+![Bolna · Vapi · Retell · LiveKit · Pipecat](https://img.shields.io/badge/Bolna_·_Vapi_·_Retell_·_LiveKit_·_Pipecat-6b4fbb)
 
 </div>
 
@@ -18,7 +21,10 @@ Built for **Bolna + Sarvam**, Indian languages first. Config checks for **Vapi**
 claude plugin marketplace add dakshinsiva/voice-doctor && claude plugin install voice-doctor@voice-doctor
 ```
 
-Then, in Claude Code: *"my Bolna agent sounds robotic, here's the export: agent.json"*
+Then, in Claude Code, on any stack:
+- *"my Bolna agent sounds robotic, here's the export: agent.json"*
+- *"our LiveKit Hindi agent in src/agent.py keeps cutting people off"*
+- *"check my Vapi assistant before tomorrow's calling batch"*
 
 <p align="center"><img src="docs/scorecard-example.png" alt="voice-doctor scorecard: speakability 27 to 90, config 32 to 98" width="720"></p>
 
@@ -36,6 +42,23 @@ After voice-doctor:
 
 22 words. One question. Devanagari with English words left in English, the way Sarvam pronounces best. Says it's an AI. Checks who answered before sharing anything.
 
+## Built for how India actually talks
+
+Global voice tools treat Indian languages as an afterthought. voice-doctor starts from them:
+- **Script and code-mixing.** Hindi in Devanagari with English words left in English ("आपका order confirm हो गया है"), the way Sarvam pronounces it best. It flags romanised Hindi going to a Sarvam voice, textbook "IVR Hindi", written-register Kannada and the wrong verb gender for the persona.
+- **Indian numbers.** ₹1,499 and lakh/crore in the form your voice engine reads correctly, pincodes and phone numbers in digit groups, weekday dates instead of "18/10".
+- **Which provider speaks which language.**
+
+  | Platform or voice | Gap |
+  |---|---|
+  | Retell | no Telugu, Malayalam, Bengali, Gujarati or Punjabi |
+  | ElevenLabs Flash | Hindi and Tamil only |
+  | Deepgram Nova-3 | no Malayalam |
+  | Bulbul v4 Flash | no Malayalam or Odia voices |
+  | Sarvam's LiveKit and Pipecat plugins | default the voice to English unless you set the language |
+- **Indian callers.** Scam-wary customers (it adds "we never ask for your OTP"), family members picking up the phone, "theek hai, thank you" mid-call, Kannada speakers on a Hindi line.
+- **Indian telephony.** Exotel, Plivo and Vobiz routing (Twilio calls on Bolna run through US servers), calling hours, voicemail on Indian mobiles.
+
 ## Why agents sound robotic, and what it catches
 
 Found in testing, on synthetic agents, public Bolna agents from GitHub and a live Bolna account:
@@ -47,7 +70,11 @@ Found in testing, on synthetic agents, public Bolna agents from GitHub and a liv
 - 🎭 **A voice that doesn't exist.** `anushka` is a v2/v3 name; it isn't a `bulbul:v4-flash` voice. ElevenLabs Flash on a Kannada agent. Cartesia with no language on a Tamil agent.
 - 🔗 **Things nobody can use by ear.** Order IDs, `#` signs, links, emails, `**bold**` and "18/10" read aloud.
 - 🧩 **Template leftovers.** A literal `***REMOVED***` in the persona line and a `your-domain.com` webhook in an open-source agent people copy.
-- 🪤 **Platform traps.** Retell keeps a silent call open for 10 minutes by default and has no voicemail detection on agents created through the API. Vapi's voicemail detection is off by default, and fields like `silenceTimeoutSeconds` aren't in its current schema. Neither platform covers every Indian language: Retell has no Telugu, Malayalam, Bengali, Gujarati or Punjabi.
+- 🪤 **Platform traps.**
+  - **Retell** keeps a silent call open for 10 minutes by default.
+  - **Vapi's** voicemail detection is off by default.
+  - **LiveKit's** `EnglishModel` turn detector misjudges when Hindi speakers have finished.
+  - **Pipecat 1.0** silently ignores `PipelineParams(allow_interruptions=...)`.
 - 💸 **Money spent on calls that couldn't finish.** In the sample week, 72% of spend went to calls cut off at the 90 s cap (52%) and to voicemail (18%).
 - 🐢 **Slow turns, measured.** LLM first token p50 1,480 ms / p95 1,910 ms from `reasoning_effort: medium`, plus 1,000 ms of configured waits, across every call in `latency_data`.
 
@@ -101,7 +128,7 @@ Three checks, used depending on what you give it:
 | Check | Input | What it looks at |
 |---|---|---|
 | Prompt | system prompt, welcome, per-call variables | markdown, links, numbers in the form your TTS wants, script and register for Indian languages, turn length, missing situations |
-| Config | Bolna agent JSON, Vapi assistant, or Retell agent + LLM | endpointing, interruptions, silence and hang-up timers, call length cap, voice and model language support, reasoning effort, TTS buffer, voicemail, calling hours, outcome capture |
+| Config | Bolna agent JSON, Vapi assistant, Retell agent + LLM, or LiveKit / Pipecat Python code (findings with `file:line`) | endpointing, interruptions, silence and hang-up timers, call length cap, voice and model language support, reasoning effort, TTS buffer, voicemail, calling hours, outcome capture |
 | Calls | Bolna executions | latency p50/p95 per component, interruptions, monologues, "hello? are you there?", loops, unspeakable output, calls hitting the cap, **where the spend went** (voicemail, cut-offs, early hang-ups), missing outcomes, worst calls to listen to |
 
 The scripts are plain Python 3 with no dependencies. Claude reads their output, reads your prompt and worst calls itself, and writes the fixes.

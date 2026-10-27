@@ -167,7 +167,7 @@ def svg(before: dict, after: dict | None) -> str:
                      f'<tspan fill="#ffffff" dx="14">{escape(item)}</tspan></text>')
     parts += [
         f'<text x="64" y="{H - 40}" fill="#6f6a85" font-size="24">github.com/dakshinsiva/voice-doctor</text>',
-        f'<text x="{W - 64}" y="{H - 40}" fill="#6f6a85" font-size="24" text-anchor="end">Bolna · Sarvam · any voice stack</text>',
+        f'<text x="{W - 64}" y="{H - 40}" fill="#6f6a85" font-size="24" text-anchor="end">Voice agents for India · Bolna · Vapi · Retell · LiveKit · Pipecat</text>',
         "</g></svg>",
     ]
     return "\n".join(parts)

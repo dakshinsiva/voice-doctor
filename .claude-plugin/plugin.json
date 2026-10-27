@@ -1,6 +1,6 @@
 {
   "name": "voice-doctor",
-  "description": "Fixes voice agents that sound robotic: makes prompts sound natural spoken, audits latency and turn-taking settings, and reviews real calls. Built for Bolna with Sarvam, Deepgram, Cartesia and ElevenLabs; works on any voice stack.",
+  "description": "The checkup every voice agent built in India should get: fixes agents that sound robotic in Hindi, Hinglish, Kannada, Tamil, Telugu and Indian English. Audits Bolna, Vapi, Retell, LiveKit and Pipecat, with Sarvam, Deepgram, ElevenLabs and Cartesia voices.",
   "version": "0.4.0",
   "author": {
     "name": "dakshinsiva"
@@ -9,14 +9,21 @@
   "repository": "https://github.com/dakshinsiva/voice-doctor",
   "license": "MIT",
   "keywords": [
-    "voice-ai",
-    "voice-agent",
     "bolna",
-    "sarvam",
-    "tts",
-    "stt",
+    "hindi",
+    "hinglish",
+    "india",
+    "kannada",
     "latency",
+    "livekit",
+    "pipecat",
     "prompt",
-    "india"
+    "retell",
+    "sarvam",
+    "stt",
+    "tts",
+    "vapi",
+    "voice-agent",
+    "voice-ai"
   ]
 }
